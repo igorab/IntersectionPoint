@@ -14,7 +14,7 @@ struct Point
 	num Y = 0;
 	num Z = 0;
 
-	explicit Point(num _X=0, num _Y=0, num _Z=0) : X(_X), Y(_Y), Z(Z) {}
+	explicit Point(num _X=0, num _Y=0, num _Z=0) : X(_X), Y(_Y), Z(_Z) {}
 
 	friend std::ostream& operator<< (std::ostream& out, const Point& point);
 };
@@ -106,7 +106,7 @@ bool hit_into_triangle(Point _point, Triangle _triangle)
 	Vector vector3(vertex3, _point) ;
 
 
-	num product_1 = v_cross_product((Vector)vertex1, Vector(vertex1, vertex2) ); // use static cast ?
+	num product_1 = v_cross_product(static_cast<Vector>(vertex1), Vector(vertex1, vertex2) ); // use static cast ?
 
 
 	return ret;
