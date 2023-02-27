@@ -15,6 +15,7 @@
 
 #include <iostream>
 
+using namespace std;
 typedef int num;
 
 static class VectorMath
@@ -121,10 +122,11 @@ struct Segment
 	Point L_A;
 	Point L_B;
 
-//https://www.youtube.com/watch?v=NXazSzbK6n8
+	explicit Segment(Point _A, Point _B) : L_A(_A), L_B(_B) {}
+
 	/**
 	 * \brief Finding Parametric Equations Passing Through Two Points
-	 * \return /
+	 * \return / https://www.youtube.com/watch?v=NXazSzbK6n8
 	 */
 	num func_AB()
 	{
@@ -138,7 +140,9 @@ struct Segment
 struct Vector
 {
 	num X, Y, Z;
-
+	
+	Vector(num _X, num _Y, num _Z) : X(_X), Y(_Y), Z(_Z) {}
+	
 	Vector(Point _point)
 	{
 		X = _point.X;
@@ -152,16 +156,12 @@ struct Vector
 		Y = _to.Y - _from.Y;
 		Z = _to.Z - _from.Z;
 	}
-
-	Vector (num _X, num _Y, num _Z): X(_X), Y(_Y), Z(_Z) {}
+	
 
 	// модуль вектора
-	double norma3()
+	num len()
 	{
-		num sumV = 0;
-		
-		sumV = X*X + Y*Y + Z*Z;
-		
+		num sumV = X * X + Y * Y + Z * Z;						
 		return sqrt(sumV);
 	}
 
@@ -181,6 +181,12 @@ struct Vector
 		Z += sign * _V.Z;
 	}
 
+	num dot3(const Vector _b)
+	{
+		return X * _b.X + Y * _b.Y + Z * _b.Z;
+	}
+
+
 	//векторное произведение
 	Vector cross3(const Vector _V)
 	{		
@@ -193,20 +199,29 @@ struct Vector
 		return vNorm;
 	}
 
-	num determinant(Vector a, Vector _V)
+	num det3(Vector a, Vector _V)
 	{
 		num det;
-
 		det = a.X * (Y * _V.Z - Z * _V.Y) +
 			a.Y * (Z * _V.X - X * _V.Z) +
 			a.Z * (X * _V.Y - Y * _V.X);
-
 		return det;
 	}
+	
+	friend Vector operator+ (Vector const _a, Vector const _b) { return Vector(_a.X + _b.X , _a.Y + _b.Y, _a.Z + _b.Z ); }
+	friend Vector operator- (Vector const _a, Vector const _b) { return Vector(_a.X - _b.X, _a.Y - _b.Y, _a.Z - _b.Z); }	
+	friend num operator*(Vector const _a, Vector const _b) { return _a.X * _b.X + _a.Y * _b.Y + _a.Z * _b.Z; } // скал€рное произведение
 
+	//¬екторное произведение
+	friend Vector operator^(Vector _a, Vector _b) { 
+		Vector normV(0,0,0);
+		normV.X = _a.Y * _b.Z - _b.Z * _a.Y; 
+		normV.Y = _a.Z * _b.X - _b.X * _a.Z; 
+		normV.Z = _a.X * _b.Y - _b.Y * _a.X; 
+		return normV;
+	}
 
 };
-
 
 
 struct r {
@@ -218,23 +233,25 @@ struct r {
 struct VGeom
 {
 	double len(r a) { return sqrt(a.x * a.x + a.y * a.y); }
-	/*
-	r operator+ (r a, r b) { return r(a.x + b.x, a.y + b.y); }
-	r operator- (r a, r b) { return r(a.x - b.x, a.y - b.y); }
+	
+	friend r operator+ (r const a, r const b) { return r(a.x + b.x, a.y + b.y); }
+
+	friend r operator- (r a, r b) { return r(a.x - b.x, a.y - b.y); }
+
 	// скал€рное произведение
-	int operator*(r a, r b) { return a.x * b.x + a.y * b.y; }
+	friend int operator*(r a, r b) { return a.x * b.x + a.y * b.y; }
 	//¬екторное произведение
-	int operator^(r a, r b) { return a.x * b.y - b.x * a.y; }
-	istream& operator>>(istream& in, r& p) {
+	friend int operator^(r a, r b) { return a.x * b.y - b.x * a.y; }
+
+	friend istream& operator>>(istream& in, r& p) {
 		in >> p.x >> p.y;
 		return in;
 	}
 
-	ostream& operator<<(ostream& out, r& p) {
+	friend ostream& operator<<(ostream& out, r& p) {
 		out << p.x << " " << p.y << endl;
 		return out;
-	}
-	*/
+	}	
 };
 
 
@@ -249,6 +266,7 @@ struct Triangle
 
 	explicit Triangle(const Point p_A, Point p_B, Point p_C) : V_A(p_A), V_B(p_B), V_C(p_C) {}
 	
+	// описать уравнение плоскости через 3 точки
 };
 
 
@@ -262,7 +280,7 @@ num v_cross_product(Vector v1, Vector v2)
 {
 	num ret;
 
-	ret = v1.X * v2.Y - v2.X * v1.Y;
+	ret = v1.cross3(v2).X;
 
 	return ret;
 }
@@ -290,6 +308,51 @@ bool hit_into_triangle(Point _point, Triangle _triangle)
 
 
 	return ret;
+}
+
+// Ћини€ пересекает треугольник ?
+void is_line_cross_triangle()
+{
+	//пусть p1, p2, p3 обозначают ваш треугольник
+
+
+}
+
+// ѕолучить точку пересечени€
+void CrossPoint()
+{
+	Point p1(0, 0, 0);
+	Point p2(1, 0, 0);
+	Point p3(1, 1, 1);
+
+
+	//запишите уравнение пр€мой в параметрической форме: p (t) = q1 + t * (q2-q1)
+	num t = 0;	
+	Point p_t;
+	Point q1;
+	Point q2;
+	
+	Segment segment(q1, q2);
+
+	p_t.X = q1.X + t * (q2.X - q1.X);
+	p_t.Y = q1.Y + t * (q2.Y - q1.Y);
+	p_t.Z = q1.Z + t * (q2.Z - q1.Z);
+	
+	//«апишите уравнение плоскости : точка(p, N) Ч точка(p, p1) = 0, где N = крест(p2 - p1, p3 - p1)
+	Triangle triangle(p1, p2, p3);
+
+	//¬ведите p(t) в уравнение плоскости : точка(q1 + t * (q2 - q1), N - p1) = 0
+
+
+	//¬ыведите t = -dot(q1, N - p1) / dot(q1, q2 - q1)
+	Vector v(q1);
+	Vector v(p1);
+	Vector v_q1(q1);
+	Vector v_q21(q2, q1);
+
+	t = -v.dot3(p1) / (v_q1 * v_q21);
+
+	// “очка пересечени€ q1 + t * (q2 - q1)
 }
 
 
