@@ -18,9 +18,103 @@
 using namespace std;
 typedef int num;
 
-static class VectorMath
+struct Point
+{
+	num X = 0;
+	num Y = 0;
+	num Z = 0;
+
+	explicit Point(num _X = 0, num _Y = 0, num _Z = 0) : X(_X), Y(_Y), Z(_Z) {}
+
+	friend std::ostream& operator<< (std::ostream& out, const Point& point);
+};
+
+struct Vector
+{
+	num X, Y, Z;
+
+	Vector() : X(0), Y(0), Z(0) {}
+	Vector(num _X, num _Y, num _Z) : X(_X), Y(_Y), Z(_Z) {}
+	Vector(Point _point) {
+		X = _point.X;
+		Y = _point.Y;
+		Z = _point.Z;
+	}
+	Vector(Point _from, Point _to) {
+		X = _to.X - _from.X;
+		Y = _to.Y - _from.Y;
+		Z = _to.Z - _from.Z;
+	}
+
+	// модуль вектора
+	num len() const {
+		num sumV = X * X + Y * Y + Z * Z;
+		return sqrt(sumV);
+	}
+
+	// произведение вектора на число
+	void mult3(const num C)
+	{
+		X = X * C;
+		Y = Y * C;
+		Z = Z * C;
+	}
+
+	//сложение векторов
+	void sum3(const Vector _V, int sign)
+	{
+		X += sign * _V.X;
+		Y += sign * _V.Y;
+		Z += sign * _V.Z;
+	}
+
+	num dot3(const Vector _b)
+	{
+		return X * _b.X + Y * _b.Y + Z * _b.Z;
+	}
+
+
+	//векторное произведение
+	Vector cross3(const Vector _V)
+	{
+		Vector vNorm(0, 0, 0);
+
+		vNorm.X = Y * _V.Z - Z * _V.Y;
+		vNorm.Y = Z * _V.X - X * _V.Z;
+		vNorm.Z = X * _V.Y - Y * _V.X;
+
+		return vNorm;
+	}
+
+	num det3(Vector a, Vector _V)
+	{
+		num det;
+		det = a.X * (Y * _V.Z - Z * _V.Y) +
+			a.Y * (Z * _V.X - X * _V.Z) +
+			a.Z * (X * _V.Y - Y * _V.X);
+		return det;
+	}
+
+	friend Vector operator+ (Vector const _A, Vector const _B) { return Vector(_A.X + _B.X, _A.Y + _B.Y, _A.Z + _B.Z); }
+	friend Vector operator- (Vector const _A, Vector const _B) { return Vector(_A.X - _B.X, _A.Y - _B.Y, _A.Z - _B.Z); }
+	friend num operator*(Vector const _a, Vector const _b) { return _a.X * _b.X + _a.Y * _b.Y + _a.Z * _b.Z; } // скалярное произведение
+	friend num operator*(num const _c, Vector const _V) { return _c * _V.X + _c * _V.Y + _c * _V.Z; } // умножение на число
+
+	//Векторное произведение
+	friend Vector operator^(Vector _a, Vector _b) {
+		Vector normV(0, 0, 0);
+		normV.X = _a.Y * _b.Z - _b.Z * _a.Y;
+		normV.Y = _a.Z * _b.X - _b.X * _a.Z;
+		normV.Z = _a.X * _b.Y - _b.Y * _a.X;
+		return normV;
+	}
+
+};
+
+class VectorMath
 {
 public:
+
 	double* cross3(double* _X, double* _Y)
 	{
 		double* v = (double*)malloc(3 * sizeof(double));
@@ -91,19 +185,21 @@ public:
 
 		return det;
 	}
+	
+	//псевдоскалярное произведение 	
+	static num v_cross_product(Vector v1, Vector v2)
+	{
+		num ret;
+
+		ret = v1.cross3(v2).X;
+
+		return ret;
+	}
+
 };
 
 
-struct Point
-{
-	num X = 0;
-	num Y = 0;
-	num Z = 0;
 
-	explicit Point(num _X=0, num _Y=0, num _Z=0) : X(_X), Y(_Y), Z(_Z) {}
-
-	friend std::ostream& operator<< (std::ostream& out, const Point& point);
-};
 
 /**
  https://radioprog.ru/post/1240 
@@ -116,111 +212,23 @@ std::ostream& operator<< (std::ostream& out, const Point& point)
 
 /**
  * \brief отрезок
+ * Finding Parametric Equations Passing Through Two Points
+ *  https://www.youtube.com/watch?v=NXazSzbK6n8
+ * 
  */
-struct Segment
+class Segment
 {
+private:
 	Point L_A;
 	Point L_B;
+public:
 
-	explicit Segment(Point _A, Point _B) : L_A(_A), L_B(_B) {}
+	// направляющий вектор
+	Vector dir;
 
-	/**
-	 * \brief Finding Parametric Equations Passing Through Two Points
-	 * \return / https://www.youtube.com/watch?v=NXazSzbK6n8
-	 */
-	num func_AB()
-	{
-		//Vector direction_V(L_B, L_A);
-
-		//direction_V;
-			//num 
-	}
-};
-
-struct Vector
-{
-	num X, Y, Z;
-	
-	Vector(num _X, num _Y, num _Z) : X(_X), Y(_Y), Z(_Z) {}
-	
-	Vector(Point _point)
-	{
-		X = _point.X;
-		Y = _point.Y;
-		Z = _point.Z;
-	}
-
-	Vector(Point _from, Point _to)
-	{
-		X = _to.X - _from.X;
-		Y = _to.Y - _from.Y;
-		Z = _to.Z - _from.Z;
-	}
-	
-
-	// модуль вектора
-	num len()
-	{
-		num sumV = X * X + Y * Y + Z * Z;						
-		return sqrt(sumV);
-	}
-
-	// произведение вектора на число
-	void mult3(const num C)
-	{				
-		X = X * C;
-		Y = Y * C;
-		Z = Z * C;
-	}
-
-	//сложение векторов
-	void sum3(const Vector _V, int sign)
-	{		
-		X += sign * _V.X;
-		Y += sign * _V.Y;
-		Z += sign * _V.Z;
-	}
-
-	num dot3(const Vector _b)
-	{
-		return X * _b.X + Y * _b.Y + Z * _b.Z;
-	}
-
-
-	//векторное произведение
-	Vector cross3(const Vector _V)
-	{		
-		Vector vNorm(0, 0, 0);
-
-		vNorm.X = Y * _V.Z - Z * _V.Y;
-		vNorm.Y = Z * _V.X - X * _V.Z;
-		vNorm.Z = X * _V.Y - Y * _V.X;
-
-		return vNorm;
-	}
-
-	num det3(Vector a, Vector _V)
-	{
-		num det;
-		det = a.X * (Y * _V.Z - Z * _V.Y) +
-			a.Y * (Z * _V.X - X * _V.Z) +
-			a.Z * (X * _V.Y - Y * _V.X);
-		return det;
-	}
-	
-	friend Vector operator+ (Vector const _a, Vector const _b) { return Vector(_a.X + _b.X , _a.Y + _b.Y, _a.Z + _b.Z ); }
-	friend Vector operator- (Vector const _a, Vector const _b) { return Vector(_a.X - _b.X, _a.Y - _b.Y, _a.Z - _b.Z); }	
-	friend num operator*(Vector const _a, Vector const _b) { return _a.X * _b.X + _a.Y * _b.Y + _a.Z * _b.Z; } // скалярное произведение
-
-	//Векторное произведение
-	friend Vector operator^(Vector _a, Vector _b) { 
-		Vector normV(0,0,0);
-		normV.X = _a.Y * _b.Z - _b.Z * _a.Y; 
-		normV.Y = _a.Z * _b.X - _b.X * _a.Z; 
-		normV.Z = _a.X * _b.Y - _b.Y * _a.X; 
-		return normV;
-	}
-
+	explicit Segment(Point _A, Point _B) : L_A(_A), L_B(_B) {
+		dir = Vector(L_A, L_B);
+	}			
 };
 
 
@@ -258,32 +266,33 @@ struct VGeom
 /**
  *  \brief треугольник
  */
-struct Triangle
+class Triangle
 {
-	Point V_A;
-	Point V_B;
-	Point V_C;
+private:
+	Point P_A;
+	Point P_B;
+	Point P_C;
 
-	explicit Triangle(const Point p_A, Point p_B, Point p_C) : V_A(p_A), V_B(p_B), V_C(p_C) {}
+public:
+
+	Vector V_AB;
+	Vector V_AC;
+	
+	explicit Triangle(const Point _A, Point _B, Point _C) : P_A(_A), P_B(_B), P_C(_C) 
+	{
+		V_AB = Vector(P_A, P_B);
+		V_AC = Vector(P_A, P_C);
+	}
 	
 	// описать уравнение плоскости через 3 точки
+	// 
+	//  вектор нормали
+	Vector dir()
+	{
+		Vector V_N = V_AB ^ V_AC;
+		return V_N;
+	}
 };
-
-
-/**
- * \brief псевдоскалярное произведение
- * \param v1 вектор 1
- * \param v2 вектор 2
- * \return число
- */
-num v_cross_product(Vector v1, Vector v2)
-{
-	num ret;
-
-	ret = v1.cross3(v2).X;
-
-	return ret;
-}
 
 /**
  * \brief принадлежит ли точка треугольнику?
@@ -303,8 +312,8 @@ bool hit_into_triangle(Point _point, Triangle _triangle)
 	Vector vector2(vertex2, _point) ;
 	Vector vector3(vertex3, _point) ;
 
-
-	num product_1 = v_cross_product(static_cast<Vector>(vertex1), Vector(vertex1, vertex2) ); // use static cast ?
+	
+	num product_1 = VectorMath::v_cross_product(static_cast<Vector>(vertex1), Vector(vertex1, vertex2) ); // use static cast ?
 
 
 	return ret;
@@ -346,7 +355,7 @@ void CrossPoint()
 
 	//Выведите t = -dot(q1, N - p1) / dot(q1, q2 - q1)
 	Vector v(q1);
-	Vector v(p1);
+	
 	Vector v_q1(q1);
 	Vector v_q21(q2, q1);
 
