@@ -26,7 +26,9 @@ struct Point
 
 	explicit Point(num _X = 0, num _Y = 0, num _Z = 0) : X(_X), Y(_Y), Z(_Z) {}
 
-	friend std::ostream& operator<< (std::ostream& out, const Point& point);
+	friend ostream& operator<< (ostream& out, const Point& point);
+
+	friend istream& operator>> (istream& in, Point& point);
 };
 
 struct Vector
@@ -204,10 +206,16 @@ public:
 /**
  https://radioprog.ru/post/1240 
  */
-std::ostream& operator<< (std::ostream& out, const Point& point)
+ostream& operator<< (std::ostream& out, const Point& point)
 {
 	out << "Point(" << point.X << ", " << point.Y << ", " << point.Z << ')';
 	return out;
+}
+
+istream& operator>> (istream& in, Point& point)
+{
+	in >> point.X >> point.Y >> point.Z ;
+	return in;
 }
 
 /**
@@ -287,10 +295,15 @@ public:
 	// описать уравнение плоскости через 3 точки
 	// 
 	//  вектор нормали
-	Vector dir()
+	Vector norm()
 	{
 		Vector V_N = V_AB ^ V_AC;
 		return V_N;
+	}
+
+	friend ostream& operator<<(ostream& out, Triangle& _T) {
+		out << _T.P_A << " " << _T.P_B <<  " " << _T.P_C <<  endl;
+		return out;
 	}
 };
 
@@ -367,11 +380,25 @@ void CrossPoint()
 
 int main()
 {
-	const Point pnt(3, 4, 5);
+	const Point pntFrom(3, 4, 5);
+	const Point pntTo(4, 4, 7);
 
-	std::cout << pnt << std::endl;
+	std::cout << pntFrom << std::endl;
 
-    //std::cout << "Point: X= " << pnt.X << " Y= " << pnt.Y << " Z= " << pnt.Z << std::endl;
+	Point pA(0, 0, 0);
+	Point pB(1, 0, 0);
+	Point pC(1, 1, 1);
+
+	Triangle triangle(pA, pB, pC);
+
+	Vector normT = triangle.norm();
+
+	Segment segment(pntFrom, pntTo);
+	Vector segDir = segment.dir;
+
+	std::cout << triangle << std::endl;
+
+
 	return 0;
 }
 
