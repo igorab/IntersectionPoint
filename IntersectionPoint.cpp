@@ -105,9 +105,9 @@ struct Vector
 	//Векторное произведение
 	friend Vector operator^(Vector _a, Vector _b) {
 		Vector normV(0, 0, 0);
-		normV.X = _a.Y * _b.Z - _b.Z * _a.Y;
-		normV.Y = _a.Z * _b.X - _b.X * _a.Z;
-		normV.Z = _a.X * _b.Y - _b.Y * _a.X;
+		normV.X = _a.Y * _b.Z - _a.Z * _b.Y;
+		normV.Y = _a.X * _b.Z - _a.Z * _b.X;
+		normV.Z = _a.X * _b.Y - _a.Y * _b.X;
 		return normV;
 	}
 
@@ -231,6 +231,9 @@ private:
 	Point L_B;
 public:
 
+	Point getA() const { return L_A; };
+	Point getB() const { return L_B; };
+
 	// направляющий вектор
 	Vector dir;
 
@@ -291,6 +294,10 @@ public:
 		V_AB = Vector(P_A, P_B);
 		V_AC = Vector(P_A, P_C);
 	}
+
+	Point getA() const { return P_A; };
+	Point getB() const { return P_B; };
+	Point getC() const { return P_C; };
 	
 	// описать уравнение плоскости через 3 точки
 	// 
@@ -341,24 +348,25 @@ void is_line_cross_triangle()
 }
 
 // Получить точку пересечения
-void CrossPoint()
-{
-	Point p1(0, 0, 0);
-	Point p2(1, 0, 0);
-	Point p3(1, 1, 1);
+void CrossPoint(Triangle _triangle, Segment _segment)
+{			
+	Point p1 = _triangle.getA();
+	Point p2 = _triangle.getB();
+	Point p3 = _triangle.getC();
 
 
 	//запишите уравнение прямой в параметрической форме: p (t) = q1 + t * (q2-q1)
-	num t = 0;	
+	num t = 1;	
 	Point p_t;
-	Point q1;
-	Point q2;
-	
-	Segment segment(q1, q2);
 
-	p_t.X = q1.X + t * (q2.X - q1.X);
-	p_t.Y = q1.Y + t * (q2.Y - q1.Y);
-	p_t.Z = q1.Z + t * (q2.Z - q1.Z);
+	Point q1 = _segment.getA();
+	Point q2 = _segment.getB();
+		
+	Vector d_q = _segment.dir;
+
+	p_t.X = q1.X + t * d_q.X;
+	p_t.Y = q1.Y + t * d_q.Y;
+	p_t.Z = q1.Z + t * d_q.Z;
 	
 	//Запишите уравнение плоскости : точка(p, N) — точка(p, p1) = 0, где N = крест(p2 - p1, p3 - p1)
 	Triangle triangle(p1, p2, p3);
@@ -383,17 +391,20 @@ int main()
 	const Point pntFrom(3, 4, 5);
 	const Point pntTo(4, 4, 7);
 
-	std::cout << pntFrom << std::endl;
+	//std::cout << pntFrom << std::endl;
 
-	Point pA(0, 0, 0);
-	Point pB(1, 0, 0);
-	Point pC(1, 1, 1);
+	Point pA(1, 0, 0);
+	Point pB(0, 1, 0);
+	Point pC(0, 0, 1);
 
 	Triangle triangle(pA, pB, pC);
 
 	Vector normT = triangle.norm();
 
 	Segment segment(pntFrom, pntTo);
+
+	CrossPoint(triangle, segment);
+
 	Vector segDir = segment.dir;
 
 	std::cout << triangle << std::endl;
