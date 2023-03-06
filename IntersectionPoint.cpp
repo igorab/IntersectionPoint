@@ -12,6 +12,8 @@
 
 //https://algocode.ru/page/c-23-geometry/
 
+//https://stackoverflow.com/questions/42740765/intersection-between-line-and-triangle-in-3d
+
 
 #include <iostream>
 
@@ -339,12 +341,31 @@ bool hit_into_triangle(Point _point, Triangle _triangle)
 	return ret;
 }
 
+/// <summary>
+/// Объем тетраэдра
+/// </summary>
+num SignedVolume(Vector A, Vector B, Vector C, Vector D)
+{	
+	num signedVol = 1/6 * (((B - A) ^ (C - A)) * (D - A));
+
+	return signedVol;
+}
+
+
 // Линия пересекает треугольник ?
-void is_line_cross_triangle()
+bool is_line_cross_triangle(Triangle _triangle, Segment _segment)
 {
-	//пусть p1, p2, p3 обозначают ваш треугольник
+	//пусть p1, p2, p3 обозначают треугольник
+	Vector p1 = _triangle.getA();
+	Vector p2 = _triangle.getB();
+	Vector p3 = _triangle.getC();
+
+	Vector q1 = _segment.getA();
+	Vector q2 = _segment.getB();
 
 
+
+	return true;
 }
 
 // Получить точку пересечения
@@ -353,54 +374,56 @@ void CrossPoint(Triangle _triangle, Segment _segment)
 	Point p1 = _triangle.getA();
 	Point p2 = _triangle.getB();
 	Point p3 = _triangle.getC();
-
-
-	//запишите уравнение прямой в параметрической форме: p (t) = q1 + t * (q2-q1)
+	
 	num t = 1;	
 	Point p_t;
 
 	Point q1 = _segment.getA();
 	Point q2 = _segment.getB();
-		
+	
 	Vector d_q = _segment.dir;
 
+	//уравнение прямой в параметрической форме: p (t) = q1 + t * (q2-q1)
 	p_t.X = q1.X + t * d_q.X;
 	p_t.Y = q1.Y + t * d_q.Y;
 	p_t.Z = q1.Z + t * d_q.Z;
 	
-	//Запишите уравнение плоскости : точка(p, N) — точка(p, p1) = 0, где N = крест(p2 - p1, p3 - p1)
+	//уравнение плоскости : 
+	// dot(p, N) — dot(p, p1) = 0, где N = крест(p2 - p1, p3 - p1)
 	Triangle triangle(p1, p2, p3);
+
+	Vector N = triangle.norm();
 
 	//Введите p(t) в уравнение плоскости : точка(q1 + t * (q2 - q1), N - p1) = 0
 
-
 	//Выведите t = -dot(q1, N - p1) / dot(q1, q2 - q1)
-	Vector v(q1);
-	
 	Vector v_q1(q1);
-	Vector v_q21(q2, q1);
+	Vector v_p1(p1);
+	Vector v_q2_1(q2, q1);
+	
+	num denom = v_q1 * v_q2_1;
 
-	t = -v.dot3(p1) / (v_q1 * v_q21);
+	t = - (v_q1 * (N - v_p1)) / denom;
 
 	// Точка пересечения q1 + t * (q2 - q1)
 }
 
 
 int main()
-{
-	const Point pntFrom(3, 4, 5);
-	const Point pntTo(4, 4, 7);
-
+{	
 	//std::cout << pntFrom << std::endl;
 
-	Point pA(1, 0, 0);
-	Point pB(0, 1, 0);
-	Point pC(0, 0, 1);
+	const Point pA(1, 0, 0);
+	const Point pB(0, 1, 0);
+	const Point pC(0, 0, 1);
 
 	Triangle triangle(pA, pB, pC);
 
 	Vector normT = triangle.norm();
 
+
+	const Point pntFrom(3, 4, 5);
+	const Point pntTo(4, 4, 7);
 	Segment segment(pntFrom, pntTo);
 
 	CrossPoint(triangle, segment);
