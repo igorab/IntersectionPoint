@@ -4,7 +4,6 @@
 //
 //https://www.youtube.com/watch?v=RIFXebcuryc&list=PLtNPgSbW9TX7acrQa2LeBAMGxO5WRAVsz&index=58
 
-//https://web-answers.ru/c/peresechenie-linii-i-treugolnika-v-3d.html
 
 //https://question-it.com/questions/3961314/3d-peresechenie-mezhdu-segmentom-i-treugolnikom
 
@@ -15,12 +14,21 @@
 //https://stackoverflow.com/questions/42740765/intersection-between-line-and-triangle-in-3d
 
 
+// проверить с 
+// https://ru.wikipedia.org/wiki/OpenGL_Mathematics
+
 #include <iostream>
 
 using namespace std;
 typedef int num;
 
-struct Point
+struct IShape
+{
+	virtual num len() = 0;
+};
+
+
+struct Point : IShape
 {
 	num X = 0;
 	num Y = 0;
@@ -31,6 +39,8 @@ struct Point
 	friend ostream& operator<< (ostream& out, const Point& point);
 
 	friend istream& operator>> (istream& in, Point& point);
+
+	num len() { return 0; }
 };
 
 struct Vector
@@ -57,11 +67,15 @@ struct Vector
 	}
 
 	// произведение вектора на число
-	void mult3(const num C)
+	Vector mult3(const num C)
 	{
-		X = X * C;
-		Y = Y * C;
-		Z = Z * C;
+		Vector vc(X,Y,Z);
+
+		vc.X = X * C;
+		vc.Y = Y * C;
+		vc.Z = Z * C;
+
+		return vc;
 	}
 
 	//сложение векторов
@@ -202,9 +216,6 @@ public:
 
 };
 
-
-
-
 /**
  https://radioprog.ru/post/1240 
  */
@@ -226,7 +237,7 @@ istream& operator>> (istream& in, Point& point)
  *  https://www.youtube.com/watch?v=NXazSzbK6n8
  * 
  */
-class Segment
+class Segment :IShape
 {
 private:
 	Point L_A;
@@ -241,7 +252,9 @@ public:
 
 	explicit Segment(Point _A, Point _B) : L_A(_A), L_B(_B) {
 		dir = Vector(L_A, L_B);
-	}			
+	}
+
+	num len() { return dir.len(); }
 };
 
 
@@ -279,7 +292,7 @@ struct VGeom
 /**
  *  \brief треугольник
  */
-class Triangle
+class Triangle: IShape
 {
 private:
 	Point P_A;
@@ -314,6 +327,8 @@ public:
 		out << _T.P_A << " " << _T.P_B <<  " " << _T.P_C <<  endl;
 		return out;
 	}
+
+	num len() { return 0; }
 };
 
 /**
@@ -350,6 +365,60 @@ num SignedVolume(Vector A, Vector B, Vector C, Vector D)
 
 	return signedVol;
 }
+
+
+bool RayIntersectsTriangle(Vector rayOrigin,
+						   Vector rayVector,
+						   Triangle* inTriangle,
+						   Vector& outIntersectionPoint)
+{
+	const float EPSILON = 0.0000001;
+
+	Vector vertex0 = inTriangle->getA();
+	Vector vertex1 = inTriangle->getB();
+	Vector vertex2 = inTriangle->getC();
+
+	Vector edge1, edge2, h, s, q;
+
+	float a, f, u, v;
+	edge1 = vertex1 - vertex0;
+	edge2 = vertex2 - vertex0;
+
+	h = rayVector.cross3(edge2);
+
+	a = edge1.dot3(h);
+
+	if (a > -EPSILON && a < EPSILON)
+		return false;    // This ray is parallel to this triangle.
+
+	f = 1.0 / a;
+	s = rayOrigin - vertex0;
+
+	u = f * s.dot3(h);
+
+	if (u < 0.0 || u > 1.0)
+		return false;
+
+	q = s.cross3(edge1);
+
+	v = f * rayVector.dot3(q);
+
+	if (v < 0.0 || u + v > 1.0)
+		return false;
+
+	// At this stage we can compute t to find out where the intersection point is on the line.
+	float t = f * edge2.dot3(q);
+
+	if (t > EPSILON) // ray intersection
+	{
+		outIntersectionPoint = rayOrigin + rayVector.mult3(t);
+		return true;
+	}
+	else // This means that there is a line intersection but not a ray intersection.
+		return false;
+}
+
+
 
 
 // Линия пересекает треугольник ?
@@ -410,9 +479,7 @@ void CrossPoint(Triangle _triangle, Segment _segment)
 
 
 int main()
-{	
-	//std::cout << pntFrom << std::endl;
-
+{		
 	const Point pA(1, 0, 0);
 	const Point pB(0, 1, 0);
 	const Point pC(0, 0, 1);
