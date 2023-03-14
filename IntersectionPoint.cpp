@@ -20,7 +20,7 @@
 #include <iostream>
 
 using namespace std;
-typedef int num;
+typedef float num;
 
 struct IShape
 {
@@ -59,6 +59,8 @@ struct Vector
 		Y = _to.Y - _from.Y;
 		Z = _to.Z - _from.Z;
 	}
+
+	Point getPoint() { return Point(X, Y, Z); }
 
 	// модуль вектора
 	num len() const {
@@ -367,12 +369,15 @@ num SignedVolume(Vector A, Vector B, Vector C, Vector D)
 }
 
 
-bool RayIntersectsTriangle(Vector rayOrigin,
-						   Vector rayVector,
+bool RayIntersectsTriangle(Segment *segment,
 						   Triangle* inTriangle,
 						   Vector& outIntersectionPoint)
 {
 	const float EPSILON = 0.0000001;
+
+	Vector rayOrigin = segment->getA() ;
+	Vector rayVector = segment->getB();
+
 
 	Vector vertex0 = inTriangle->getA();
 	Vector vertex1 = inTriangle->getB();
@@ -394,12 +399,13 @@ bool RayIntersectsTriangle(Vector rayOrigin,
 	f = 1.0 / a;
 	s = rayOrigin - vertex0;
 
-	u = f * s.dot3(h);
+	u = f * (s * h);
 
 	if (u < 0.0 || u > 1.0)
 		return false;
 
-	q = s.cross3(edge1);
+	//q = s.cross3(edge1);
+	q = s ^ edge1;
 
 	v = f * rayVector.dot3(q);
 
@@ -407,11 +413,11 @@ bool RayIntersectsTriangle(Vector rayOrigin,
 		return false;
 
 	// At this stage we can compute t to find out where the intersection point is on the line.
-	float t = f * edge2.dot3(q);
+	num t = f * edge2.dot3(q);
 
 	if (t > EPSILON) // ray intersection
-	{
-		outIntersectionPoint = rayOrigin + rayVector.mult3(t);
+	{		
+		outIntersectionPoint = rayOrigin + (rayVector.mult3(t));
 		return true;
 	}
 	else // This means that there is a line intersection but not a ray intersection.
@@ -423,16 +429,12 @@ bool RayIntersectsTriangle(Vector rayOrigin,
 
 // Линия пересекает треугольник ?
 bool is_line_cross_triangle(Triangle _triangle, Segment _segment)
-{
-	//пусть p1, p2, p3 обозначают треугольник
-	Vector p1 = _triangle.getA();
-	Vector p2 = _triangle.getB();
-	Vector p3 = _triangle.getC();
+{		
+	Vector intersectionPoint;
 
-	Vector q1 = _segment.getA();
-	Vector q2 = _segment.getB();
-
-
+	RayIntersectsTriangle(&_segment, &_triangle, intersectionPoint);
+	
+	std::cout << "Intersection: " << intersectionPoint.getPoint() << std::endl;
 
 	return true;
 }
@@ -489,15 +491,18 @@ int main()
 	Vector normT = triangle.norm();
 
 
-	const Point pntFrom(3, 4, 5);
-	const Point pntTo(4, 4, 7);
+	const Point pntFrom(0, 0, 0);
+	const Point pntTo(5, 5, 5);
 	Segment segment(pntFrom, pntTo);
 
-	CrossPoint(triangle, segment);
+	//CrossPoint(triangle, segment);
+
+	is_line_cross_triangle(triangle, segment);
+
 
 	Vector segDir = segment.dir;
 
-	std::cout << triangle << std::endl;
+	//std::cout << triangle << std::endl;
 
 
 	return 0;
