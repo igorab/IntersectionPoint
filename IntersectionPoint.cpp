@@ -1,33 +1,20 @@
 // Написать код на С++для определения точки пересечения отрезка и
 // треугольника в 3D пространстве.Отрезок задан координатами концов,
 // треугольник задан координатами всех трех углов.
-//
-//https://www.youtube.com/watch?v=RIFXebcuryc&list=PLtNPgSbW9TX7acrQa2LeBAMGxO5WRAVsz&index=58
-
-
-//https://question-it.com/questions/3961314/3d-peresechenie-mezhdu-segmentom-i-treugolnikom
-
-//https://www.geeksforgeeks.org/equation-of-a-line-in-3d/
-
-//https://algocode.ru/page/c-23-geometry/
-
-//https://stackoverflow.com/questions/42740765/intersection-between-line-and-triangle-in-3d
-
-
-// проверить с 
-// https://ru.wikipedia.org/wiki/OpenGL_Mathematics
 
 #include <iostream>
 
 using namespace std;
 typedef float num;
 
+const float EPSILON = 0.0000001;
+
 struct IShape
 {
 	virtual num len() = 0;
 };
 
-
+// точка в пространстве
 struct Point : IShape
 {
 	num X = 0;
@@ -43,6 +30,7 @@ struct Point : IShape
 	num len() { return 0; }
 };
 
+// вектор
 struct Vector
 {
 	num X, Y, Z;
@@ -71,12 +59,7 @@ struct Vector
 	// произведение вектора на число
 	Vector mult3(const num C)
 	{
-		Vector vc(X,Y,Z);
-
-		vc.X = X * C;
-		vc.Y = Y * C;
-		vc.Z = Z * C;
-
+		Vector vc(C * X, C * Y, C * Z);
 		return vc;
 	}
 
@@ -93,16 +76,12 @@ struct Vector
 		return X * _b.X + Y * _b.Y + Z * _b.Z;
 	}
 
-
 	//векторное произведение
 	Vector cross3(const Vector _V)
 	{
-		Vector vNorm(0, 0, 0);
-
-		vNorm.X = Y * _V.Z - Z * _V.Y;
-		vNorm.Y = Z * _V.X - X * _V.Z;
-		vNorm.Z = X * _V.Y - Y * _V.X;
-
+		Vector vNorm(Y * _V.Z - Z * _V.Y,
+			Z * _V.X - X * _V.Z,
+			X * _V.Y - Y * _V.X);
 		return vNorm;
 	}
 
@@ -117,128 +96,23 @@ struct Vector
 
 	friend Vector operator+ (Vector const _A, Vector const _B) { return Vector(_A.X + _B.X, _A.Y + _B.Y, _A.Z + _B.Z); }
 	friend Vector operator- (Vector const _A, Vector const _B) { return Vector(_A.X - _B.X, _A.Y - _B.Y, _A.Z - _B.Z); }
-	friend num operator*(Vector const _a, Vector const _b) { return _a.X * _b.X + _a.Y * _b.Y + _a.Z * _b.Z; } // скалярное произведение
-	friend num operator*(num const _c, Vector const _V) { return _c * _V.X + _c * _V.Y + _c * _V.Z; } // умножение на число
-
+	// скалярное произведение
+	friend num operator*(Vector const _a, Vector const _b) { return _a.X * _b.X + _a.Y * _b.Y + _a.Z * _b.Z; } 
+	// умножение на число
+	friend Vector operator*(num const _c, Vector const _V) { 
+		Vector V(_V);
+		Vector c_V = V.mult3(_c);
+		return c_V;
+	} 
 	//Векторное произведение
-	friend Vector operator^(Vector _a, Vector _b) {
-		Vector normV(0, 0, 0);
-		normV.X = _a.Y * _b.Z - _a.Z * _b.Y;
-		normV.Y = _a.X * _b.Z - _a.Z * _b.X;
-		normV.Z = _a.X * _b.Y - _a.Y * _b.X;
+	friend Vector operator^(Vector const _a, Vector const _b) {
+		Vector A(_a);
+		Vector normV = A.cross3(_b);		
 		return normV;
 	}
-
 };
 
-class VectorMath
-{
-public:
-
-	double* cross3(double* _X, double* _Y)
-	{
-		double* v = (double*)malloc(3 * sizeof(double));
-
-		v[0] = _X[1] * _Y[2] - _X[2] * _Y[1];
-		v[1] = _X[2] * _Y[0] - _X[0] * _Y[2];
-		v[2] = _X[0] * _Y[1] - _X[1] * _Y[0];
-
-		return v;
-	}
-
-	//скалярное произведение
-	double dotProduct3(double* _X, double* _Y)
-	{
-		double val;
-
-		val = _X[0] * _Y[0] + _X[1] * _Y[1] + _X[2] * _Y[2];
-
-		return val;
-	}
-
-	//модуль вектора
-	double norma3(double* val)
-	{
-		double sumV = 0;
-
-		for (int i = 0; i < 3; i++)
-		{
-			sumV += pow(val[i], 2);
-		}
-
-		return sqrt(sumV);
-	}
-
-	// произведение вектора на число
-	double* mult3(double* _X, double C)
-	{
-		double* V = (double*)malloc(3 * sizeof(double));
-
-		for (int i = 0; i < 3; i++)
-		{
-			V[i] = _X[i] * C;
-		}
-
-		return V;
-	}
-
-	//сложение векторов
-	double* sum3(double* _X, double* _Y, int sign)
-	{
-		double* v = (double*)malloc(3 * sizeof(double));
-
-		for (int i = 0; i < 3; i++)
-		{
-			v[i] = _X[i] + sign * _Y[i];
-		}
-
-		return v;
-	}
-
-	double determinant(double* a, double* _X, double* _Y)
-	{
-		double det;
-
-		det = a[0] * (_X[1] * _Y[2] - _X[2] * _Y[1]) +
-			a[1] * (_X[2] * _Y[0] - _X[0] * _Y[2]) +
-			a[2] * (_X[0] * _Y[1] - _X[1] * _Y[0]);
-
-		return det;
-	}
-	
-	//псевдоскалярное произведение 	
-	static num v_cross_product(Vector v1, Vector v2)
-	{
-		num ret;
-
-		ret = v1.cross3(v2).X;
-
-		return ret;
-	}
-
-};
-
-/**
- https://radioprog.ru/post/1240 
- */
-ostream& operator<< (std::ostream& out, const Point& point)
-{
-	out << "Point(" << point.X << ", " << point.Y << ", " << point.Z << ')';
-	return out;
-}
-
-istream& operator>> (istream& in, Point& point)
-{
-	in >> point.X >> point.Y >> point.Z ;
-	return in;
-}
-
-/**
- * \brief отрезок
- * Finding Parametric Equations Passing Through Two Points
- *  https://www.youtube.com/watch?v=NXazSzbK6n8
- * 
- */
+// Отрезок
 class Segment :IShape
 {
 private:
@@ -260,41 +134,8 @@ public:
 };
 
 
-struct r {
-	double x, y;
-	r() {}
-	r(int _x, int _y) { x = _x, y = _y; }
-};
-
-struct VGeom
-{
-	double len(r a) { return sqrt(a.x * a.x + a.y * a.y); }
-	
-	friend r operator+ (r const a, r const b) { return r(a.x + b.x, a.y + b.y); }
-
-	friend r operator- (r a, r b) { return r(a.x - b.x, a.y - b.y); }
-
-	// скалярное произведение
-	friend int operator*(r a, r b) { return a.x * b.x + a.y * b.y; }
-	//Векторное произведение
-	friend int operator^(r a, r b) { return a.x * b.y - b.x * a.y; }
-
-	friend istream& operator>>(istream& in, r& p) {
-		in >> p.x >> p.y;
-		return in;
-	}
-
-	friend ostream& operator<<(ostream& out, r& p) {
-		out << p.x << " " << p.y << endl;
-		return out;
-	}	
-};
-
-
-/**
- *  \brief треугольник
- */
-class Triangle: IShape
+//    треугольник
+class Triangle : IShape
 {
 private:
 	Point P_A;
@@ -305,8 +146,8 @@ public:
 
 	Vector V_AB;
 	Vector V_AC;
-	
-	explicit Triangle(const Point _A, Point _B, Point _C) : P_A(_A), P_B(_B), P_C(_C) 
+
+	explicit Triangle(const Point _A, Point _B, Point _C) : P_A(_A), P_B(_B), P_C(_C)
 	{
 		V_AB = Vector(P_A, P_B);
 		V_AC = Vector(P_A, P_C);
@@ -315,7 +156,7 @@ public:
 	Point getA() const { return P_A; };
 	Point getB() const { return P_B; };
 	Point getC() const { return P_C; };
-	
+
 	// описать уравнение плоскости через 3 точки
 	// 
 	//  вектор нормали
@@ -326,55 +167,29 @@ public:
 	}
 
 	friend ostream& operator<<(ostream& out, Triangle& _T) {
-		out << _T.P_A << " " << _T.P_B <<  " " << _T.P_C <<  endl;
+		out << _T.P_A << " " << _T.P_B << " " << _T.P_C << endl;
 		return out;
 	}
 
 	num len() { return 0; }
 };
 
-/**
- * \brief принадлежит ли точка треугольнику?
- * \param _point 
- * \param _triangle 
- * \return 
- */
-bool hit_into_triangle(Point _point, Triangle _triangle)
+ostream& operator<< (std::ostream& out, const Point& point)
 {
-	bool ret = false;
-
-	Point vertex1;
-	Point vertex2;
-	Point vertex3;
-
-	Vector vector1(vertex1, _point) ;
-	Vector vector2(vertex2, _point) ;
-	Vector vector3(vertex3, _point) ;
-
-	
-	num product_1 = VectorMath::v_cross_product(static_cast<Vector>(vertex1), Vector(vertex1, vertex2) ); // use static cast ?
-
-
-	return ret;
+	out << "Point(" << point.X << ", " << point.Y << ", " << point.Z << ')';
+	return out;
 }
 
-/// <summary>
-/// Объем тетраэдра
-/// </summary>
-num SignedVolume(Vector A, Vector B, Vector C, Vector D)
-{	
-	num signedVol = 1/6 * (((B - A) ^ (C - A)) * (D - A));
-
-	return signedVol;
+istream& operator>> (istream& in, Point& point)
+{
+	in >> point.X >> point.Y >> point.Z ;
+	return in;
 }
-
 
 bool RayIntersectsTriangle(Segment *segment,
 						   Triangle* inTriangle,
 						   Vector& outIntersectionPoint)
-{
-	const float EPSILON = 0.0000001;
-
+{	
 	Vector rayOrigin = segment->getA() ;
 	Vector rayVector = segment->getB();
 
@@ -403,13 +218,12 @@ bool RayIntersectsTriangle(Segment *segment,
 
 	if (u < 0.0 || u > 1.0)
 		return false;
-
-	//q = s.cross3(edge1);
+	
 	q = s ^ edge1;
 
 	v = f * rayVector.dot3(q);
 
-	if (v < 0.0 || u + v > 1.0)
+	if (v < 0.0 || u + v > 1.0f)
 		return false;
 
 	// At this stage we can compute t to find out where the intersection point is on the line.
@@ -420,90 +234,50 @@ bool RayIntersectsTriangle(Segment *segment,
 		outIntersectionPoint = rayOrigin + (rayVector.mult3(t));
 		return true;
 	}
-	else // This means that there is a line intersection but not a ray intersection.
+	else
+	{
+		// This means that there is a line intersection but not a ray intersection.
 		return false;
+	}
 }
 
 
-
-
 // Линия пересекает треугольник ?
-bool is_line_cross_triangle(Triangle _triangle, Segment _segment)
+bool is_line_cross_triangle(Segment* _segment, Triangle* _triangle)
 {		
 	Vector intersectionPoint;
 
-	RayIntersectsTriangle(&_segment, &_triangle, intersectionPoint);
+	RayIntersectsTriangle(_segment, _triangle, intersectionPoint);
 	
 	std::cout << "Intersection: " << intersectionPoint.getPoint() << std::endl;
 
 	return true;
 }
 
-// Получить точку пересечения
-void CrossPoint(Triangle _triangle, Segment _segment)
-{			
-	Point p1 = _triangle.getA();
-	Point p2 = _triangle.getB();
-	Point p3 = _triangle.getC();
-	
-	num t = 1;	
-	Point p_t;
-
-	Point q1 = _segment.getA();
-	Point q2 = _segment.getB();
-	
-	Vector d_q = _segment.dir;
-
-	//уравнение прямой в параметрической форме: p (t) = q1 + t * (q2-q1)
-	p_t.X = q1.X + t * d_q.X;
-	p_t.Y = q1.Y + t * d_q.Y;
-	p_t.Z = q1.Z + t * d_q.Z;
-	
-	//уравнение плоскости : 
-	// dot(p, N) — dot(p, p1) = 0, где N = крест(p2 - p1, p3 - p1)
-	Triangle triangle(p1, p2, p3);
-
-	Vector N = triangle.norm();
-
-	//Введите p(t) в уравнение плоскости : точка(q1 + t * (q2 - q1), N - p1) = 0
-
-	//Выведите t = -dot(q1, N - p1) / dot(q1, q2 - q1)
-	Vector v_q1(q1);
-	Vector v_p1(p1);
-	Vector v_q2_1(q2, q1);
-	
-	num denom = v_q1 * v_q2_1;
-
-	t = - (v_q1 * (N - v_p1)) / denom;
-
-	// Точка пересечения q1 + t * (q2 - q1)
-}
-
+// triangle
+#define vA 1, 0, 0
+#define vB 0, 1, 0
+#define vC 0, 0, 1
+// segment
+#define fromA 0, 0, 0
+#define toB 5, 5, 5
 
 int main()
 {		
-	const Point pA(1, 0, 0);
-	const Point pB(0, 1, 0);
-	const Point pC(0, 0, 1);
+	const Point pA(vA), pB(vB), pC(vC);	
+	//Triangle triangle(pA, pB, pC);
+	Triangle* triangle = new Triangle(pA, pB, pC);
+	Vector normT = triangle->norm();
 
-	Triangle triangle(pA, pB, pC);
-
-	Vector normT = triangle.norm();
-
-
-	const Point pntFrom(0, 0, 0);
-	const Point pntTo(5, 5, 5);
+	const Point pntFrom(fromA), pntTo(toB);
+	
 	Segment segment(pntFrom, pntTo);
-
-	//CrossPoint(triangle, segment);
-
-	is_line_cross_triangle(triangle, segment);
-
-
 	Vector segDir = segment.dir;
 
+	is_line_cross_triangle(&segment, triangle);
+	
+	delete triangle;
 	//std::cout << triangle << std::endl;
-
 
 	return 0;
 }
