@@ -200,13 +200,13 @@ bool RayIntersectsTriangle(Segment *segment,
 
 	Vector edge1, edge2, h, s, q;
 
-	float a, f, u, v;
+	num a, f, u, v;
 	edge1 = vertex1 - vertex0;
 	edge2 = vertex2 - vertex0;
 
-	h = rayVector.cross3(edge2);
+	h = (rayVector ^ edge2);
 
-	a = edge1.dot3(h);
+	a = (edge1 * h);
 
 	if (a > -EPSILON && a < EPSILON)
 		return false;    // This ray is parallel to this triangle.
@@ -219,19 +219,19 @@ bool RayIntersectsTriangle(Segment *segment,
 	if (u < 0.0 || u > 1.0)
 		return false;
 	
-	q = s ^ edge1;
+	q = (s ^ edge1);
 
-	v = f * rayVector.dot3(q);
+	v = f * (rayVector * q);
 
 	if (v < 0.0 || u + v > 1.0f)
 		return false;
 
 	// At this stage we can compute t to find out where the intersection point is on the line.
-	num t = f * edge2.dot3(q);
+	num t = f * (edge2 * q);
 
 	if (t > EPSILON) // ray intersection
 	{		
-		outIntersectionPoint = rayOrigin + (rayVector.mult3(t));
+		outIntersectionPoint = rayOrigin + (t * rayVector);
 		return true;
 	}
 	else
@@ -255,12 +255,12 @@ bool is_line_cross_triangle(Segment* _segment, Triangle* _triangle)
 }
 
 // triangle
-#define vA 1, 0, 0
-#define vB 0, 1, 0
-#define vC 0, 0, 1
+#define vA 2, 0, 0
+#define vB 0, 2, 0
+#define vC 0, 0, 2
 // segment
 #define fromA 0, 0, 0
-#define toB 5, 5, 5
+#define toB 0, 1, 0 
 
 int main()
 {		

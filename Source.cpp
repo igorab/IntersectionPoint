@@ -1,7 +1,7 @@
 #include <iostream>
 
 //https://www.youtube.com/watch?v=RIFXebcuryc&list=PLtNPgSbW9TX7acrQa2LeBAMGxO5WRAVsz&index=58
-//https://question-it.com/questions/3961314/3d-peresechenie-mezhdu-segmentom-i-treugolnikom
+
 //https://www.geeksforgeeks.org/equation-of-a-line-in-3d/
 //https://algocode.ru/page/c-23-geometry/
 //https://stackoverflow.com/questions/42740765/intersection-between-line-and-triangle-in-3d
