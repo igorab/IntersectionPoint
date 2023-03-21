@@ -280,6 +280,22 @@ public:
 		delete triangle;
 	}
 
+
+	static num AreaSign(Point A, Point B, Point C)
+	{
+		num area2;
+
+		area2 = (B.X - A.X) * (C.Y - A.Y) - (C.X - A.X) * (B.Y - A.Y);
+
+		if (area2 > 0.5) 
+			return 1;
+		else if (area2 < 0.5) 
+			return -1;
+		else 
+			return 0;
+	}
+
+
 	int AreaSign(tPointi a, tPointi b, tPointi c)
 	{
 		double area2;
