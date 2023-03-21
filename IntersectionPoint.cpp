@@ -9,6 +9,15 @@ typedef float num;
 
 const float EPSILON = 0.0000001;
 
+enum class IntersectionType{
+	p, //The segment lies wholly within the plane.  
+	q, //The (first) q endpoint is on the plane (but not 'p'). 
+	r, //The (second) r endpoint is on the plane (but not 'p'). 
+	p0, //The segment lies strictly to one side or the other of the plane. 
+	p1  //The segment intersects the plane, and none of {p, q, r} hold. 
+};
+
+
 struct IShape
 {
 	virtual num len() = 0;
@@ -242,43 +251,91 @@ bool RayIntersectsTriangle(Segment *segment,
 }
 
 
-// Линия пересекает треугольник ?
-bool is_line_cross_triangle(Segment* _segment, Triangle* _triangle)
-{		
-	Vector intersectionPoint;
+class SegmentTriangleIntersection
+{
+private:
+	Segment* segment;
+	Triangle* triangle;
 
-	RayIntersectsTriangle(_segment, _triangle, intersectionPoint);
-	
-	std::cout << "Intersection: " << intersectionPoint.getPoint() << std::endl;
+public:
+	SegmentTriangleIntersection(Point _from, Point _to, Point _A, Point _B, Point _C)
+	{
+		segment = new Segment(_from, _to);
+		triangle = new Triangle(_A, _B, _C);
+	}
 
-	return true;
-}
+	~SegmentTriangleIntersection()
+	{
+		delete segment;
+		delete triangle;
+	}
+
+	char InTri2D(Point Tp[3], Point pp)
+	{
+		return ' 0';
+	}
+
+
+	char InTri3D(Point T, int m, Point p)
+	{
+		return ' 0';
+	}
+
+
+	char  SegPlaneInt(Point T, Point q, Point r, Point p, int *m)
+	{
+		return ' 0';
+	}
+
+	char  SegTriInt(Point T, Point q, Point r, Point p)
+	{
+		int code;
+		int m;
+
+		return ' 0';
+	}
+
+
+
+	// Линия пересекает треугольник ?
+	static bool is_ray_cross_triangle(Segment* _segment, Triangle* _triangle)
+	{
+		Vector intersectionPoint;
+
+		RayIntersectsTriangle(_segment, _triangle, intersectionPoint);
+
+		std::cout << "Intersection: " << intersectionPoint.getPoint() << std::endl;
+
+		return true;
+	}
+
+};
+
 
 // triangle
-#define vA 2, 0, 0
-#define vB 0, 2, 0
-#define vC 0, 0, 2
+#define vA 1, 0, 0
+#define vB 0, 1, 0
+#define vC 1, 1, 1 
 // segment
 #define fromA 0, 0, 0
-#define toB 0, 1, 0 
+#define toB 1, 1, 1 
 
 int main()
 {		
 	const Point pA(vA), pB(vB), pC(vC);	
-	//Triangle triangle(pA, pB, pC);
+	
 	Triangle* triangle = new Triangle(pA, pB, pC);
 	Vector normT = triangle->norm();
 
 	const Point pntFrom(fromA), pntTo(toB);
 	
-	Segment segment(pntFrom, pntTo);
-	Vector segDir = segment.dir;
-
-	is_line_cross_triangle(&segment, triangle);
+	Segment* segment = new Segment(pntFrom, pntTo);
+	
+	SegmentTriangleIntersection::is_ray_cross_triangle(segment, triangle);
 	
 	delete triangle;
-	//std::cout << triangle << std::endl;
-
+	delete segment;
+	
 	return 0;
 }
 
