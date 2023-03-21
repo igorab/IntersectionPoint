@@ -6,8 +6,15 @@
 
 using namespace std;
 typedef float num;
-
+const int DIM = 3;
 const float EPSILON = 0.0000001;
+
+typedef int tPointi[DIM];
+typedef double tPointd[DIM];
+#define PMAX 10000 
+tPointi Vertices[PMAX];
+tPointi Faces[PMAX];
+
 
 enum class IntersectionType{
 	p, //The segment lies wholly within the plane.  
@@ -253,6 +260,9 @@ bool RayIntersectsTriangle(Segment *segment,
 
 class SegmentTriangleIntersection
 {
+
+
+
 private:
 	Segment* segment;
 	Triangle* triangle;
@@ -270,32 +280,81 @@ public:
 		delete triangle;
 	}
 
-	char InTri2D(Point Tp[3], Point pp)
+	int AreaSign(tPointi a, tPointi b, tPointi c)
 	{
-		return ' 0';
+		double area2;
+
+		area2 = (b[0] - a[0]) * (double)(c[1] - a[1]) - (c[0] - a[0]) * (double)(b[1] - a[1]);
+		
+		if (area2 > 0.5) return 1;
+		else if (area2 < 0.5) return -1;
+		else return 0;
 	}
 
 
-	char InTri3D(Point T, int m, Point p)
+	char InTri2D(tPointi Tp[3], tPointi pp)
 	{
-		return ' 0';
+		int area0, area1, area2;
+
+		area0 = AreaSign(pp, Tp[0], Tp[1]);
+		area1 = AreaSign(pp, Tp[1], Tp[2]);
+		area2 = AreaSign(pp, Tp[2], Tp[0]);
+
+		if (area0 == 0 && area1 == 0)
+			return 'V';
+
+		return '0';
 	}
 
 
-	char  SegPlaneInt(Point T, Point q, Point r, Point p, int *m)
+	char InTri3D(tPointi T, int m, tPointi p)
 	{
+		int i; /* Index for X,Y,Z */
+		int j; /* Index for X,Y*/
+		int k; /* Index for triangle vertex */
+		tPointi pp; /*projectedp */
+		tPointi Tp[3]; /* projected T: three new vertices */
+		
+		/* Project out coordinate m in both p and the triangular face */
+		j = 0;
+		for (i = 0; i < DIM; i++) 
+		{
+			if (i != m) 
+			{
+				pp[j] = pp[i];
+					
+				for (k = 0; k < 3; k++)
+				{
+					Tp[k][j] = Vertices[T[k]][i];
+				}
+				j++;
+			}
+		}
+
+		return InTri2D(Tp, pp);
+	}
+
+
+	char  SegPlaneInt(tPointi T, tPointi q, tPointi r, tPointd p, int *m)
+	{
+		tPointd N; double D;
+		tPointi rq;
+		double num, denom, t;
+		int i;
+
+
 		return ' 0';
 	}
 
-	char  SegTriInt(Point T, Point q, Point r, Point p)
+	char  SegTriInt(tPointi T, tPointi q, tPointi r, tPointd p)
 	{
 		int code;
 		int m;
 
+		code = SegPlaneInt(T, q, r, p, &m);
+
 		return ' 0';
 	}
-
-
 
 	// Линия пересекает треугольник ?
 	static bool is_ray_cross_triangle(Segment* _segment, Triangle* _triangle)
