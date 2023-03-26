@@ -351,6 +351,46 @@ public:
 	}
 
 
+	char SegmemtPlaneIntersectioin(Vector v_P)
+	{
+		Vector v_r = segment->getA();
+		Vector v_q = segment->getB();
+
+
+		Vector v_N = triangle->norm();
+		double D = 0;
+		Vector v_rq = segment->dir;
+		double num, denom, t;
+		int i;
+
+		//*m = PlaneCoeff(T, N, &D);
+
+		num = D - (v_q * v_N);
+		denom = (v_rq * v_N);
+
+		if (denom != 0)
+		{
+			t = num / denom;
+		}
+		else
+		{
+			return (num == 0) ? 'p' : '0';
+		}
+
+		v_P = v_q + t * v_rq;
+
+		if (t > 0 && t < 1)
+			return '1';
+
+		if (num == 0)
+			return 'q';
+
+		if (num == denom)
+			return 'r';
+
+		return '0';
+	}
+		
 	char  SegPlaneInt(tPointi T, tPointi q, tPointi r, tPointd p, int *m)
 	{
 		tPointd N; double D;
