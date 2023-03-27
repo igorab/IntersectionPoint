@@ -280,7 +280,6 @@ public:
 		delete triangle;
 	}
 
-
 	static num AreaSign(Point A, Point B, Point C)
 	{
 		num area2;
@@ -295,6 +294,34 @@ public:
 			return 0;
 	}
 
+	int PlaneCoefficients(double* D)
+	{
+		int i;
+		double t;
+		double biggest = 0.0;
+		int m = 0;
+
+		Vector v_N = triangle->norm();
+
+		Vector v_A(triangle->getA());
+
+		*D = (v_A * v_N);
+
+		num N[] = {v_N.X, v_N.Y, v_N.Z};
+
+		for (i = 0; i < DIM; i++) 
+		{
+			t = fabs(N[i]);
+
+			if (t > biggest) 
+			{
+				biggest = t;
+				m = i;
+			}
+		}
+		return m;
+	}
+
 
 	int AreaSign(tPointi a, tPointi b, tPointi c)
 	{
@@ -305,6 +332,35 @@ public:
 		if (area2 > 0.5) return 1;
 		else if (area2 < 0.5) return -1;
 		else return 0;
+	}
+
+
+	char IntersectionTriangle2D(Point pp)
+	{
+		int area0, area1, area2;
+		
+		Point Tp[] = { triangle->getA(), triangle->getB(), triangle->getC()};
+
+		area0 = AreaSign(pp, Tp[0], Tp[1]);
+		area1 = AreaSign(pp, Tp[1], Tp[2]);
+		area2 = AreaSign(pp, Tp[2], Tp[0]);
+
+		if ((area0 == 0 && area1 > 0 && area2 > 0) || (area1 == 0 && area0 > 0 && area2 > 0) || (area2 == 0 && area0 > 0 && area1 > 0))
+			return 'E';
+
+		if ((area0 == 0 && area1 < 0 && area2 > 0) || (area1 == 0 && area0 < 0 && area2 > 0) || (area2 == 0 && area0 < 0 && area1 > 0))
+			return 'E';
+
+		if ((area0 > 0 && area1 > 0 && area2 > 0) || (area0 < 0 && area1 < 0 && area2 < 0))
+			return 'F';
+
+		if (area0 == 0 && area1 == 0 && area2 == 0)
+			exit(EXIT_FAILURE);
+
+		if (area0 == 0 && area1 == 0 || area0 == 0 && area2 == 0 || area1 == 0 && area2 == 0)
+			return 'V';
+
+		return '0';
 	}
 
 
@@ -363,7 +419,7 @@ public:
 		double num, denom, t;
 		int i;
 
-		//*m = PlaneCoeff(T, N, &D);
+		int m = PlaneCoefficients(&D);
 
 		num = D - (v_q * v_N);
 		denom = (v_rq * v_N);
