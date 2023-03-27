@@ -493,7 +493,9 @@ public:
 #define toB 1, 1, 1 
 
 int main()
-{		
+{	
+	system("chcp 1251");
+
 	const Point pA(vA), pB(vB), pC(vC);	
 	
 	Triangle* triangle = new Triangle(pA, pB, pC);
