@@ -334,7 +334,6 @@ public:
 		else return 0;
 	}
 
-
 	char IntersectionTriangle2D(Point pp)
 	{
 		int area0, area1, area2;
