@@ -359,6 +359,11 @@ public:
 		return '0';
 	}
 
+	char IntersectionTriangle3D(Point pp)
+	{
+		IntersectionTriangle2D(pp);
+	}
+
 
 	char InTri2D(tPointi Tp[3], tPointi pp)
 	{
