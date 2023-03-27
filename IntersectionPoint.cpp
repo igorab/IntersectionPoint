@@ -12,7 +12,7 @@ const float EPSILON = 0.0000001;
 typedef int tPointi[DIM];
 typedef double tPointd[DIM];
 #define PMAX 10000 
-tPointi Vertices[PMAX];
+
 tPointi Faces[PMAX];
 
 
@@ -397,7 +397,7 @@ public:
 					
 				for (k = 0; k < 3; k++)
 				{
-					Tp[k][j] = Vertices[T[k]][i];
+					//Tp[k][j] = Vertices[T[k]][i];
 				}
 				j++;
 			}
