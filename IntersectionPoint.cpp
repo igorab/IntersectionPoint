@@ -136,11 +136,16 @@ public:
 	Point getA() const { return L_A; };
 	Point getB() const { return L_B; };
 
+	Vector Q;
+	Vector R;
+
 	// направл€ющий вектор
 	Vector dir;
 
 	explicit Segment(Point _A, Point _B) : L_A(_A), L_B(_B) {
 		dir = Vector(L_A, L_B);
+		Q = Vector(L_A);
+		R = Vector(L_B);
 	}
 
 	num len() { return dir.len(); }
@@ -159,11 +164,11 @@ public:
 
 	Vector V_AB;
 	Vector V_AC;
-
+	
 	explicit Triangle(const Point _A, Point _B, Point _C) : P_A(_A), P_B(_B), P_C(_C)
 	{
 		V_AB = Vector(P_A, P_B);
-		V_AC = Vector(P_A, P_C);
+		V_AC = Vector(P_A, P_C);		
 	}
 
 	Point getA() const { return P_A; };
@@ -257,9 +262,6 @@ bool RayIntersectsTriangle(Segment *segment,
 
 class SegmentTriangleIntersection
 {
-
-
-
 private:
 	Segment* segment;
 	Triangle* triangle;
@@ -359,9 +361,9 @@ public:
 		return '0';
 	}
 
-	char IntersectionTriangle3D(Point pp)
+	char IntersectionTriangle3D(Point projectedPoint, int m)
 	{
-		IntersectionTriangle2D(pp);
+		return IntersectionTriangle2D(projectedPoint);
 	}
 
 
@@ -408,19 +410,19 @@ public:
 	}
 
 
-	char SegmemtPlaneIntersectioin(Vector v_P)
+	char SegmemtPlaneIntersectioin(Vector v_P, int* m)
 	{
-		Vector v_r = segment->getA();
-		Vector v_q = segment->getB();
-
-
+		Vector v_q = segment->Q;
+		Vector v_r = segment->R;
+		
 		Vector v_N = triangle->norm();
+
 		double D = 0;
 		Vector v_rq = segment->dir;
 		double num, denom, t;
 		int i;
 
-		int m = PlaneCoefficients(&D);
+		*m = PlaneCoefficients(&D);
 
 		num = D - (v_q * v_N);
 		denom = (v_rq * v_N);
@@ -447,8 +449,30 @@ public:
 
 		return '0';
 	}
+
+
+	char SegmentTriangleIntersection_Calc()
+	{
+		int code;
+		int m;
+
+		Vector v_P;
+
+		code = SegmemtPlaneIntersectioin(v_P, &m);
+
+		if (code == 'q')
+		{
+			return IntersectionTriangle3D(segment->getA(), m);
+		}
+		else if (code == 'r')
+		{
+			return IntersectionTriangle3D(segment->getB(), m);
+		}
+
+
+	}
 		
-	char  SegPlaneInt(tPointi T, tPointi q, tPointi r, tPointd p, int *m)
+	char  SegPlaneInt(tPointi T, tPointi q, tPointi r, tPointd p, int* m)
 	{
 		tPointd N; double D;
 		tPointi rq;
