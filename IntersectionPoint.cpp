@@ -450,6 +450,18 @@ public:
 		return '0';
 	}
 
+	char SegmentTriangleCross()
+	{
+		int volO, voll, vol2;
+
+		return '0';
+	}
+
+	//lies entirely in the plane 
+	char InPlane()
+	{
+		return '0';
+	}
 
 	char SegmentTriangleIntersection_Calc()
 	{
@@ -468,10 +480,19 @@ public:
 		{
 			return IntersectionTriangle3D(segment->getB(), m);
 		}
-
-
+		else if (code == 'p')
+		{
+			return InPlane();
+		}
+		else 
+		{
+			return SegmentTriangleCross();
+		}			
 	}
 		
+
+
+
 	char  SegPlaneInt(tPointi T, tPointi q, tPointi r, tPointd p, int* m)
 	{
 		tPointd N; double D;
