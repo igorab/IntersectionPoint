@@ -11,9 +11,6 @@ const float EPSILON = 0.0000001;
 
 typedef int tPointi[DIM];
 typedef double tPointd[DIM];
-#define PMAX 10000 
-
-tPointi Faces[PMAX];
 
 
 enum class IntersectionType{
