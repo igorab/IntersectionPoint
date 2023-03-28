@@ -25,6 +25,7 @@ enum class IntersectionType{
 struct IShape
 {
 	virtual num len() = 0;
+	virtual num area() = 0;
 };
 
 // точка в пространстве
@@ -33,14 +34,21 @@ struct Point : IShape
 	num X = 0;
 	num Y = 0;
 	num Z = 0;
-
+	
 	explicit Point(num _X = 0, num _Y = 0, num _Z = 0) : X(_X), Y(_Y), Z(_Z) {}
 
 	friend ostream& operator<< (ostream& out, const Point& point);
 
 	friend istream& operator>> (istream& in, Point& point);
 
+	num* getTPoint()
+	{
+		static num Tp[DIM] = { X, Y, Z };
+		return Tp;
+	}
+
 	num len() { return 0; }
+	num area() { return 0; }
 };
 
 // вектор
@@ -149,6 +157,7 @@ public:
 	}
 
 	num len() { return dir.len(); }
+	num area() { return 0; }
 };
 
 
@@ -164,13 +173,15 @@ public:
 
 	Vector V_AB;
 	Vector V_AC;
+	Vector V_BC;
 	
 	explicit Triangle(const Point _A, Point _B, Point _C) : P_A(_A), P_B(_B), P_C(_C)
 	{
 		V_AB = Vector(P_A, P_B);
 		V_AC = Vector(P_A, P_C);		
+		V_BC = Vector(P_B, P_C);
 	}
-
+	
 	Point getA() const { return P_A; };
 	Point getB() const { return P_B; };
 	Point getC() const { return P_C; };
@@ -189,7 +200,8 @@ public:
 		return out;
 	}
 
-	num len() { return 0; }
+	num len() { return V_AB.len() + V_AC.len() + V_BC.len(); }
+	num area() { return (V_AB ^ V_AC).len() / 2 ; }
 };
 
 ostream& operator<< (std::ostream& out, const Point& point)
@@ -320,19 +332,7 @@ public:
 		}
 		return m;
 	}
-
-
-	int AreaSign(tPointi a, tPointi b, tPointi c)
-	{
-		double area2;
-
-		area2 = (b[0] - a[0]) * (double)(c[1] - a[1]) - (c[0] - a[0]) * (double)(b[1] - a[1]);
-		
-		if (area2 > 0.5) return 1;
-		else if (area2 < 0.5) return -1;
-		else return 0;
-	}
-
+	
 	char IntersectionTriangle2D(Point pp)
 	{
 		int area0, area1, area2;
@@ -361,55 +361,33 @@ public:
 		return '0';
 	}
 
-	char IntersectionTriangle3D(Point projectedPoint, int m)
+	char IntersectionTriangle3D(Point point, int m)
 	{
-		return IntersectionTriangle2D(projectedPoint);
-	}
+		Point projectedPoint;
+		int i, j, k;
+		num* p;
+		num pp[DIM];
+		p = point.getTPoint();
 
+		Point tr[] = { triangle->getA(), triangle->getB(), triangle->getC() };
 
-	char InTri2D(tPointi Tp[3], tPointi pp)
-	{
-		int area0, area1, area2;
+		Point projectedTriangle[DIM];
 
-		area0 = AreaSign(pp, Tp[0], Tp[1]);
-		area1 = AreaSign(pp, Tp[1], Tp[2]);
-		area2 = AreaSign(pp, Tp[2], Tp[0]);
-
-		if (area0 == 0 && area1 == 0)
-			return 'V';
-
-		return '0';
-	}
-
-
-	char InTri3D(tPointi T, int m, tPointi p)
-	{
-		int i; /* Index for X,Y,Z */
-		int j; /* Index for X,Y*/
-		int k; /* Index for triangle vertex */
-		tPointi pp; /*projectedp */
-		tPointi Tp[3]; /* projected T: three new vertices */
-		
-		/* Project out coordinate m in both p and the triangular face */
-		j = 0;
-		for (i = 0; i < DIM; i++) 
+		for (i = 0; i < DIM; i++)
 		{
-			if (i != m) 
+			if (i != m)
 			{
-				pp[j] = pp[i];
-					
-				for (k = 0; k < 3; k++)
-				{
-					//Tp[k][j] = Vertices[T[k]][i];
-				}
+				pp[j] = p[i];
+				
+				projectedTriangle[i] = tr[i];
+
 				j++;
 			}
 		}
 
-		return InTri2D(Tp, pp);
+		return IntersectionTriangle2D(projectedPoint);
 	}
-
-
+		
 	char SegmemtPlaneIntersectioin(Vector v_P, int* m)
 	{
 		Vector v_q = segment->Q;
@@ -542,19 +520,23 @@ int main()
 	system("chcp 1251");
 
 	const Point pA(vA), pB(vB), pC(vC);	
-	
-	Triangle* triangle = new Triangle(pA, pB, pC);
-	Vector normT = triangle->norm();
-
 	const Point pntFrom(fromA), pntTo(toB);
-	
+
 	Segment* segment = new Segment(pntFrom, pntTo);
-	
-	SegmentTriangleIntersection::is_ray_cross_triangle(segment, triangle);
-	
+	Triangle* triangle = new Triangle(pA, pB, pC);
+
+	if (segment->len() == 0 || triangle->area() == 0)
+	{
+		cout << "incorrect size";
+	}
+	else
+	{
+		Vector normT = triangle->norm();
+		SegmentTriangleIntersection::is_ray_cross_triangle(segment, triangle);		
+	}
 	delete triangle;
 	delete segment;
-	
+
 	return 0;
 }
 
