@@ -332,7 +332,10 @@ public:
 		delete triangle;
 	}
 
-	Point* getIntersectionPoint() { return &iPoint; }
+	Point* getIntersectionPoint()
+	{ 
+		return &iPoint; 
+	}
 
 
 	static num AreaSign(Point A, Point B, Point C)
@@ -435,13 +438,14 @@ public:
 		return IntersectionTriangle2D(projectedPoint, triangleProjected);
 	}
 		
-	char SegmentPlaneIntersection(Vector v_P, int* _m_XYZ)
+	char SegmentPlaneIntersection(int* _m_XYZ)
 	{
 		Vector v_q  = segment->Q;
 		Vector v_r  = segment->R;
 		Vector v_rq = segment->dir;
 		Vector v_N  = triangle->norm();
 
+		Vector v_P;
 		double D = 0;		
 		double num, denom, t;
 		int i;
@@ -459,10 +463,10 @@ public:
 		{
 			return (num == 0) ? 'p' : '0';
 		}
-
+		 
 		v_P = v_q + t * v_rq;
 
-		iPoint = v_P.getPoint();
+		iPoint = v_P.getPoint(); // пересечение с плоскостью
 
 		if (t > 0 && t < 1)
 			return '1';
@@ -495,7 +499,7 @@ public:
 		int m_XYZ;
 		Vector v_P;
 
-		code = SegmentPlaneIntersection(v_P, &m_XYZ);
+		code = SegmentPlaneIntersection(&m_XYZ);
 
 		if (code == 'q')
 		{
@@ -537,7 +541,7 @@ public:
 #define vC 0, 0, 1 
 // segment
 #define fromA 0, 0, 0
-#define toB 3, 3, 3 
+#define toB 1, 1, -1 
 
 int main()
 {	
@@ -558,13 +562,15 @@ int main()
 		SegmentTriangleIntersection* segmentTriangleIntersection = new SegmentTriangleIntersection(segment, triangle);
 
 		segmentTriangleIntersection->IntersectionCalculate();
-				
-		std::cout << "Intersection: " << *segmentTriangleIntersection-> getIntersectionPoint() << std::endl;
+		
+		SegmentTriangleIntersection::is_ray_cross_triangle(segment, triangle);
+
+		std::cout << "Intersection: " << *segmentTriangleIntersection->getIntersectionPoint() << std::endl;
 
 		delete segmentTriangleIntersection;
 
 
-		//SegmentTriangleIntersection::is_ray_cross_triangle(segment, triangle);
+		//
 	}
 	//delete triangle;
 	//delete segment;
