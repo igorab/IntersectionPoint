@@ -380,15 +380,15 @@ public:
 		return m;
 	}
 	
-	char IntersectionTriangle2D(Point pp, Triangle _triangle)
+	char IntersectionTriangle2D(Point _projPoint, Triangle _triangle)
 	{
 		int area0, area1, area2;
 		
 		Point Tp[] = { _triangle.getA(), _triangle.getB(), _triangle.getC()};
 
-		area0 = AreaSign(pp, Tp[0], Tp[1]);
-		area1 = AreaSign(pp, Tp[1], Tp[2]);
-		area2 = AreaSign(pp, Tp[2], Tp[0]);
+		area0 = AreaSign(_projPoint, Tp[0], Tp[1]);
+		area1 = AreaSign(_projPoint, Tp[1], Tp[2]);
+		area2 = AreaSign(_projPoint, Tp[2], Tp[0]);
 
 		if ((area0 == 0 && area1 > 0 && area2 > 0) || (area1 == 0 && area0 > 0 && area2 > 0) || (area2 == 0 && area0 > 0 && area1 > 0))
 			return 'E';
@@ -412,12 +412,13 @@ public:
 	{
 		Point projectedPoint;
 		int i, j, k;
-		num* p;
-		num pp[DIM];
-		p = point.getTPoint();
+		//num* p;
+		//num pp[DIM];
+		//p = point.getTPoint();
 
 		Point tr[] = { triangle->getA(), triangle->getB(), triangle->getC() };
 
+		/*
 		Point projectedTriangle[DIM];
 
 		j = 0;
@@ -432,6 +433,21 @@ public:
 				j++;
 			}
 		}
+		*/
+
+		if (m_XYZ == 0) // X
+		{
+			projectedPoint = Point(0, point.Y, point.Z);
+		}
+		else if (m_XYZ == 1) // Y
+		{
+			projectedPoint = Point(point.X, 0, point.Z);
+		}
+		else if (m_XYZ == 2) // Z
+		{
+			projectedPoint = Point(point.X, point.Y, 0);
+		}
+
 
 		Triangle triangleProjected = triangle->Triangle_Proj(m_XYZ);
 
