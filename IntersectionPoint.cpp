@@ -200,23 +200,23 @@ public:
 		return out;
 	}
 
-	Triangle Triangle_Proj(int _O_XYZ)
+	Triangle Triangle_Proj2D(int _O_XYZ)
 	{
 		Point _A, _B, _C;
 		Triangle tr(_A, _B, _C);
 		
 		if (_O_XYZ == 0)
 		{
-			_A = Point(0, P_A.Y, P_A.Z);
-			_B = Point(0, P_B.Y, P_B.Z);
-			_C = Point(0, P_C.Y, P_C.Z);
+			_A = Point(P_A.Y, P_A.Z, 0);
+			_B = Point(P_B.Y, P_B.Z, 0);
+			_C = Point(P_C.Y, P_C.Z, 0);
 			tr = Triangle(_A, _B, _C);
 		}
 		else if (_O_XYZ == 1)
 		{
-			_A = Point(P_A.X, 0, P_A.Z);
-			_B = Point(P_B.X, 0, P_B.Z);
-			_C = Point(P_C.X, 0, P_C.Z);
+			_A = Point(P_A.X, P_A.Z, 0);
+			_B = Point(P_B.X, P_B.Z, 0);
+			_C = Point(P_C.X, P_C.Z, 0);
 			tr = Triangle(_A, _B, _C);
 		}
 		else if (_O_XYZ == 2)
@@ -338,7 +338,7 @@ public:
 	}
 
 
-	static num AreaSign(Point A, Point B, Point C)
+	static int AreaSign(Point A, Point B, Point C)
 	{
 		num area2;
 
@@ -380,15 +380,27 @@ public:
 		return m;
 	}
 	
-	char IntersectionTriangle2D(Point _projPoint, Triangle _triangle)
-	{
-		int area0, area1, area2;
-		
-		Point Tp[] = { _triangle.getA(), _triangle.getB(), _triangle.getC()};
+	//'V: p coincides with a Vertex of T. 
+	//'E': p is in the relative interior of an Edge of T.
+	//'F': p is in the relative interior of a Face of T.
+	//'0': p does not intersect T. 
 
-		area0 = AreaSign(_projPoint, Tp[0], Tp[1]);
-		area1 = AreaSign(_projPoint, Tp[1], Tp[2]);
-		area2 = AreaSign(_projPoint, Tp[2], Tp[0]);
+	char IntersectionTriangle2D(Point _projPointXY, Triangle _triangleXY)
+	{
+		int area0, area1, area2; // signs
+		Point A_2D = _triangleXY.getA();
+		Point B_2D = _triangleXY.getB();
+		Point C_2D = _triangleXY.getC();
+
+		area0 = AreaSign(_projPointXY, A_2D, B_2D);
+		area1 = AreaSign(_projPointXY, B_2D, C_2D);
+		area2 = AreaSign(_projPointXY, C_2D, A_2D);
+
+		if (area0 == 0 && area1 == 0 && area2 == 0)
+			exit(EXIT_FAILURE);
+
+		if (area0 == 0 && area1 == 0 || area0 == 0 && area2 == 0 || area1 == 0 && area2 == 0)
+			return 'V';
 
 		if ((area0 == 0 && area1 > 0 && area2 > 0) || (area1 == 0 && area0 > 0 && area2 > 0) || (area2 == 0 && area0 > 0 && area1 > 0))
 			return 'E';
@@ -398,63 +410,33 @@ public:
 
 		if ((area0 > 0 && area1 > 0 && area2 > 0) || (area0 < 0 && area1 < 0 && area2 < 0))
 			return 'F';
-
-		if (area0 == 0 && area1 == 0 && area2 == 0)
-			exit(EXIT_FAILURE);
-
-		if (area0 == 0 && area1 == 0 || area0 == 0 && area2 == 0 || area1 == 0 && area2 == 0)
-			return 'V';
-
+				
 		return '0';
 	}
 
 	char IntersectionTriangle3D(Point point, int m_XYZ)
 	{
-		Point projectedPoint;
-		int i, j, k;
-		//num* p;
-		//num pp[DIM];
-		//p = point.getTPoint();
-
-		Point tr[] = { triangle->getA(), triangle->getB(), triangle->getC() };
-
-		/*
-		Point projectedTriangle[DIM];
-
-		j = 0;
-		for (i = 0; i < DIM; i++)
-		{
-			if (i != m_XYZ)
-			{
-				//pp[j] = p[i];
-				
-				projectedTriangle[i] = tr[i];
-
-				j++;
-			}
-		}
-		*/
-
+		Point projPointXY;
+			
 		if (m_XYZ == 0) // X
 		{
-			projectedPoint = Point(0, point.Y, point.Z);
+			projPointXY = Point(point.Y, point.Z, 0);
 		}
 		else if (m_XYZ == 1) // Y
 		{
-			projectedPoint = Point(point.X, 0, point.Z);
+			projPointXY = Point(point.X, point.Z, 0);
 		}
 		else if (m_XYZ == 2) // Z
 		{
-			projectedPoint = Point(point.X, point.Y, 0);
+			projPointXY = Point(point.X, point.Y, 0);
 		}
 
+		Triangle triangleProjected = triangle->Triangle_Proj2D(m_XYZ);
 
-		Triangle triangleProjected = triangle->Triangle_Proj(m_XYZ);
-
-		return IntersectionTriangle2D(projectedPoint, triangleProjected);
+		return IntersectionTriangle2D(projPointXY, triangleProjected);
 	}
 		
-	char SegmentPlaneIntersection(int* _m_XYZ)
+	IntersectionType SegmentPlaneIntersection(int* _m_XYZ)
 	{
 		Vector v_q  = segment->Q;
 		Vector v_r  = segment->R;
@@ -477,7 +459,7 @@ public:
 		}
 		else
 		{
-			return (num == 0) ? 'p' : '0';
+			return (num == 0) ? IntersectionType::p : IntersectionType::p0;
 		}
 		 
 		v_P = v_q + t * v_rq;
@@ -485,15 +467,15 @@ public:
 		iPoint = v_P.getPoint(); // пересечение с плоскостью
 
 		if (t > 0 && t < 1)
-			return '1';
+			return IntersectionType::p1;
 
 		if (num == 0)
-			return 'q';
+			return IntersectionType::q;
 
 		if (num == denom)
-			return 'r';
+			return IntersectionType::r;
 
-		return '0';
+		return IntersectionType::p0;
 	}
 
 	char SegmentTriangleCross()
@@ -510,22 +492,21 @@ public:
 	}
 
 	char IntersectionCalculate()
-	{
-		int code;
+	{		
 		int m_XYZ;
 		Vector v_P;
 
-		code = SegmentPlaneIntersection(&m_XYZ);
+		IntersectionType code = SegmentPlaneIntersection(&m_XYZ);
 
-		if (code == 'q')
+		if (code == IntersectionType::q)
 		{
 			return IntersectionTriangle3D(segment->getA(), m_XYZ);
 		}
-		else if (code == 'r')
+		else if (code == IntersectionType::r)
 		{
 			return IntersectionTriangle3D(segment->getB(), m_XYZ);
 		}
-		else if (code == 'p')
+		else if (code == IntersectionType::p)
 		{
 			return InPlane();
 		}
@@ -554,10 +535,17 @@ public:
 // triangle
 #define vA 1, 0, 0
 #define vB 0, 1, 0
-#define vC 0, 0, 1 
-// segment
+#define vC 1, 1, 1 
+
+// segment q
+/*
+#define fromA 0, 0, 1
+#define toB 0, 0, 2 
+*/
+
+// segment r
 #define fromA 0, 0, 0
-#define toB 1, 1, -1 
+#define toB 1, 1, 0.5 
 
 int main()
 {	
@@ -568,28 +556,21 @@ int main()
 
 	Segment* segment = new Segment(pntFrom, pntTo);
 	Triangle* triangle = new Triangle(pA, pB, pC);
+	SegmentTriangleIntersection* segmentTriangleIntersection = new SegmentTriangleIntersection(segment, triangle);
 
 	if (segment->len() == 0 || triangle->area() == 0)
-	{
+	{		
 		cout << "incorrect size";
 	}
 	else
-	{	
-		SegmentTriangleIntersection* segmentTriangleIntersection = new SegmentTriangleIntersection(segment, triangle);
-
+	{			
 		segmentTriangleIntersection->IntersectionCalculate();
 		
 		SegmentTriangleIntersection::is_ray_cross_triangle(segment, triangle);
 
-		std::cout << "Intersection: " << *segmentTriangleIntersection->getIntersectionPoint() << std::endl;
-
-		delete segmentTriangleIntersection;
-
-
-		//
-	}
-	//delete triangle;
-	//delete segment;
+		std::cout << "Intersection: " << *segmentTriangleIntersection->getIntersectionPoint() << std::endl;			
+	}	
+	delete segmentTriangleIntersection;
 
 	return 0;
 }
