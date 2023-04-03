@@ -18,7 +18,19 @@ enum class IntersectionType{
 	q, //The (first) q endpoint is on the plane (but not 'p'). 
 	r, //The (second) r endpoint is on the plane (but not 'p'). 
 	p0, //The segment lies strictly to one side or the other of the plane. 
-	p1  //The segment intersects the plane, and none of {p, q, r} hold. 
+	p1,  //The segment intersects the plane, and none of {p, q, r} hold. 
+	////
+	f,
+	v,
+	e,
+	f0,
+	///
+	V,
+	E,
+	F,
+	T0,
+	///
+	in_plane
 };
 
 
@@ -403,7 +415,7 @@ public:
 	//'F': p is in the relative interior of a Face of T.
 	//'0': p does not intersect T. 
 
-	char IntersectionTriangle2D(Point _projPointXY, Triangle _triangleXY)
+	IntersectionType IntersectionTriangle2D(Point _projPointXY, Triangle _triangleXY)
 	{
 		int area0, area1, area2; // signs
 		Point A_2D = _triangleXY.getA();
@@ -418,21 +430,21 @@ public:
 			exit(EXIT_FAILURE);
 
 		if (area0 == 0 && area1 == 0 || area0 == 0 && area2 == 0 || area1 == 0 && area2 == 0)
-			return 'V';
+			return IntersectionType::V;
 
 		if ((area0 == 0 && area1 > 0 && area2 > 0) || (area1 == 0 && area0 > 0 && area2 > 0) || (area2 == 0 && area0 > 0 && area1 > 0))
-			return 'E';
+			return IntersectionType::E;
 
 		if ((area0 == 0 && area1 < 0 && area2 > 0) || (area1 == 0 && area0 < 0 && area2 > 0) || (area2 == 0 && area0 < 0 && area1 > 0))
-			return 'E';
+			return IntersectionType::E;
 
 		if ((area0 > 0 && area1 > 0 && area2 > 0) || (area0 < 0 && area1 < 0 && area2 < 0))
-			return 'F';
+			return IntersectionType::F;
 				
-		return '0';
+		return IntersectionType::T0;
 	}
 
-	char IntersectionTriangle3D(Point point, int m_XYZ)
+	IntersectionType IntersectionTriangle3D(Point point, int m_XYZ)
 	{
 		Point projPointXY;
 			
@@ -496,34 +508,51 @@ public:
 		return IntersectionType::p0;
 	}
 
-	char SegmentTriangleCross()
+	IntersectionType SegmentTriangleCross()
 	{
-		int vol0, voll, vol2;
+		int vol0, vol1, vol2;
 
 		Vector v_A = triangle->getA(), 
 			   v_B = triangle->getB(), 
 			   v_C = triangle->getC();
 
 		vol0 = VolumeSign(segment->Q, v_A, v_B, segment->R);
-		vol0 = VolumeSign(segment->Q, v_B, v_C, segment->R);
-		vol0 = VolumeSign(segment->Q, v_C, v_A, segment->R);
+		vol1 = VolumeSign(segment->Q, v_B, v_C, segment->R);
+		vol2 = VolumeSign(segment->Q, v_C, v_A, segment->R);
 
+		if (vol0 == 0 && vol1 == 0 && vol2 == 0)
+			exit(EXIT_FAILURE);
 
+		//Same sign: segment intersects interior of triangle. 
+		if ((vol0 > 0 && vol1 > 0 && vol2 > 0) || (vol0 < 0 && vol1 < 0 && vol2 < 0))
+			return IntersectionType::f;
 
-		return '0';
+		//Opposite sign: no intersection between segment and triangle. 
+		if ((vol0 > 0 || vol1 > 0 || vol2 > 0) && (vol0 < 0 || vol1 < 0 || vol2 < 0))
+			return IntersectionType::f0;
+
+		//Two zeros: segment intersects vertex. 
+		if ((vol0 == 0 && vol1 == 0) || (vol0 == 0 && vol2 == 0) || (vol1 == 0 && vol2 == 0))
+			return IntersectionType::v;
+
+		//One zero : segment intersects edge
+		if (vol0 == 0 || vol1 == 0 || vol2 == 0)
+			return IntersectionType::e;
+
+		return IntersectionType::f0;
 	}
 
 	//lies entirely in the plane 
-	char InPlane()
+	IntersectionType InPlane()
 	{
-		return '0';
+		return IntersectionType::in_plane;
 	}
 
-	char IntersectionCalculate()
+	IntersectionType IntersectionCalculate()
 	{		
 		int m_XYZ;
 		Vector v_P;
-
+		 
 		IntersectionType code = SegmentPlaneIntersection(&m_XYZ);
 
 		if (code == IntersectionType::q)
@@ -540,7 +569,8 @@ public:
 		}
 		else 
 		{
-			return SegmentTriangleCross();
+			IntersectionType inType = SegmentTriangleCross();
+			return inType;
 		}			
 	}
 		
@@ -592,7 +622,7 @@ int main()
 	}
 	else
 	{			
-		segmentTriangleIntersection->IntersectionCalculate();
+		IntersectionType inResult = segmentTriangleIntersection->IntersectionCalculate();
 		
 		SegmentTriangleIntersection::is_ray_cross_triangle(segment, triangle);
 
