@@ -337,20 +337,38 @@ public:
 		return &iPoint; 
 	}
 
-
-	static int AreaSign(Point A, Point B, Point C)
+	
+	static int AreaSign(Point _A, Point _B, Point _C)
 	{
 		num area2;
 
-		area2 = (B.X - A.X) * (C.Y - A.Y) - (C.X - A.X) * (B.Y - A.Y);
+		area2 = (_B.X - _A.X) * (_C.Y - _A.Y) - (_C.X - _A.X) * (_B.Y - _A.Y);
 
 		if (area2 > 0.5) 
 			return 1;
 		else if (area2 < 0.5) 
 			return -1;
-		else 
-			return 0;
+		
+		return 0;
 	}
+
+	static int VolumeSign(Vector v_A, Vector v_B, Vector v_C, Vector v_P )
+	{
+		num vol;						
+		Vector v_dA = v_A - v_P;
+		Vector v_dB = v_B - v_P;
+		Vector v_dC = v_C - v_P;
+
+		vol = (v_dA * (v_dB ^ v_dC));
+
+		if (vol > 0.5)
+			return 1;
+		if (vol < 0.5)
+			return -1;
+
+		return 0;
+	}
+
 
 	int PlaneCoefficients(double* D)
 	{
@@ -480,7 +498,17 @@ public:
 
 	char SegmentTriangleCross()
 	{
-		int volO, voll, vol2;
+		int vol0, voll, vol2;
+
+		Vector v_A = triangle->getA(), 
+			   v_B = triangle->getB(), 
+			   v_C = triangle->getC();
+
+		vol0 = VolumeSign(segment->Q, v_A, v_B, segment->R);
+		vol0 = VolumeSign(segment->Q, v_B, v_C, segment->R);
+		vol0 = VolumeSign(segment->Q, v_C, v_A, segment->R);
+
+
 
 		return '0';
 	}
