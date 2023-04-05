@@ -18,7 +18,10 @@
     <ClCompile Include="IntersectionPoint.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source.cpp">
+    <ClCompile Include="SegmentSegmentIntersection.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="IntersectionObjects.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

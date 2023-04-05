@@ -139,8 +139,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="IntersectionObjects.cpp" />
     <ClCompile Include="IntersectionPoint.cpp" />
-    <ClCompile Include="Source.cpp" />
+    <ClCompile Include="SegmentSegmentIntersection.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
