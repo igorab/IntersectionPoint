@@ -2,40 +2,41 @@
 #include "IntersectionObjects.cpp"
 
 enum class IntersectionType {	
-	/// Check plane: 	
-	p, //The segment lies wholly within the plane.  
-	q, //The (first) q endpoint is on the plane (but not 'p'). 
-	r, //The (second) r endpoint is on the plane (but not 'p'). 
-	p0, //The segment lies strictly to one side or the other of the plane. 
-	p1,  //The segment intersects the plane, and none of {p, q, r} hold. 
-	// Check triangle:
-	v, // The open segment includes a vertex of T. 
-	e, // The open segment includes a point in the relative interior of an edge of T 
-	f, // The open segment includes a point in the relative interior of a face of T. 
-	f0, 
-	// Check triangle:
-	V, //p coincides with a Vertex of T. 
-	E, //p is in the relative interior of an Edge of T.
-	F, //p is in the relative interior of a Face of T.
-	T0,
-	///
-	in_plane
+	// Check plane: 	
+	p, //  Segment lies wholly within the plane  
+	q, //  Q from-point is on the plane 
+	r, //  Second R endpoint is on the plane 
+	p0, // Segment parallel - lies strictly to one side or the other of the plane. 
+	p1, // The segment intersects the plane
+
+	//  Check  segment / triangle:
+	v,  // segment includes a vertex of triangle 
+	e,  // segment includes a point of an edge of triangle 
+	f,  // segment includes a point in the face of triangle. 
+	f0, // segment lays outside the triangle 
+
+	//  Check point / triangle:
+	V, // p coincides with a Vertex of T. 
+	E, // p is in the relative interior of an Edge of T.
+	F, // p is in the relative interior of a Face of T.
+	T0 // point lays outside
+	
 };
 
 const char* txt_result[] = {"The segment lies wholly within the plane", 
-					 "The (first) q endpoint is on the plane (but not 'p')",   
-					 "The(second) r endpoint is on the plane(but not 'p')",
-				     "The segment lies strictly to one side or the other of the plane",
-					 "The segment intersects the plane, and none of {p, q, r} hold",
-					 "The open segment includes a vertex of triangle",
-					 "The open segment includes a point in the relative interior of an edge of triangle",
-					 "The open segment includes a point in the relative interior of a face of triangle",
-					 "",
+					 "First Q point is on the plane",   
+					 "Second R endpoint is on the plane",
+				     "Segment parallel to triangle",
+					 "Segment intersects the plane",
+					 "Segment includes a vertex of triangle",
+					 "Segment includes a point in the relative interior of an edge of triangle",
+					 "Segment includes a point in the relative interior of a face of triangle",
+					 "Segment lays outside the triangle",
 					 "Point coincides with a Vertex of triangle",
 					 "Point is in the relative interior of an Edge of triangle",
 					 "Point is in the relative interior of a Face of triangle",
-					 "",
-					 ""};
+					 "Point lays outside triangle"
+					 };
 
 
 ostream& operator<< (std::ostream& out, const Point& point)
@@ -49,62 +50,6 @@ istream& operator>> (istream& in, Point& point)
 	in >> point.X >> point.Y >> point.Z;
 	return in;
 };
-
-//MoellerЦTrumbore intersection algorithm
-bool RayIntersectsTriangle(Segment *segment,
-						   Triangle* inTriangle,
-						   Vector& outIntersectionPoint)
-{	
-	Vector rayOrigin = segment->getA() ;
-	Vector rayVector = segment->getB();
-
-
-	Vector vertex0 = inTriangle->getA();
-	Vector vertex1 = inTriangle->getB();
-	Vector vertex2 = inTriangle->getC();
-
-	Vector edge1, edge2, h, s, q;
-
-	num a, f, u, v;
-	edge1 = vertex1 - vertex0;
-	edge2 = vertex2 - vertex0;
-
-	h = (rayVector ^ edge2);
-
-	a = (edge1 * h);
-
-	if (a > -EPSILON && a < EPSILON)
-		return false;    // This ray is parallel to this triangle.
-
-	f = 1.0 / a;
-	s = rayOrigin - vertex0;
-
-	u = f * (s * h);
-
-	if (u < 0.0 || u > 1.0)
-		return false;
-	
-	q = (s ^ edge1);
-
-	v = f * (rayVector * q);
-
-	if (v < 0.0 || u + v > 1.0f)
-		return false;
-
-	// At this stage we can compute t to find out where the intersection point is on the line.
-	num t = f * (edge2 * q);
-
-	if (t > EPSILON) // ray intersection
-	{		
-		outIntersectionPoint = rayOrigin + (t * rayVector);
-		return true;
-	}
-	else
-	{
-		// This means that there is a line intersection but not a ray intersection.
-		return false;
-	}
-}
 
 
 class SegmentTriangleIntersection
@@ -166,11 +111,10 @@ public:
 
 		vol = (v_dA * (v_dB ^ v_dC));
 
-		if (vol > 0.5)
+		if (vol >= 0.5)
 			return 1;
-		if (vol < 0.5)
+		if (vol <= -0.5)
 			return -1;
-
 		return 0;
 	}
 
@@ -203,36 +147,32 @@ public:
 		return max_XYZ;
 	}
 	
-	//'V: p coincides with a Vertex of T. 
-	//'E': p is in the relative interior of an Edge of T.
-	//'F': p is in the relative interior of a Face of T.
-	//'0': p does not intersect T. 
 
 	IntersectionType IntersectionTriangle2D(Point _projPointXY, Triangle _triangleXY)
 	{
-		int area0, area1, area2; // signs
+		int area0_sign, area1_sign, area2_sign; 
 		Point A_2D = _triangleXY.getA();
 		Point B_2D = _triangleXY.getB();
 		Point C_2D = _triangleXY.getC();
 
-		area0 = AreaSign(_projPointXY, A_2D, B_2D);
-		area1 = AreaSign(_projPointXY, B_2D, C_2D);
-		area2 = AreaSign(_projPointXY, C_2D, A_2D);
+		area0_sign = AreaSign(_projPointXY, A_2D, B_2D);
+		area1_sign = AreaSign(_projPointXY, B_2D, C_2D);
+		area2_sign = AreaSign(_projPointXY, C_2D, A_2D);
 
-		if (area0 == 0 && area1 == 0 && area2 == 0)
+		if (area0_sign == 0 && area1_sign == 0 && area2_sign == 0)
 			exit(EXIT_FAILURE);
 
-		if (area0 == 0 && area1 == 0 || area0 == 0 && area2 == 0 || area1 == 0 && area2 == 0)
-			return IntersectionType::V;
+		if (area0_sign == 0 && area1_sign == 0 || area0_sign == 0 && area2_sign == 0 || area1_sign == 0 && area2_sign == 0)
+			return IntersectionType::V; //coincides with a Vertex of T. 
 
-		if ((area0 == 0 && area1 > 0 && area2 > 0) || (area1 == 0 && area0 > 0 && area2 > 0) || (area2 == 0 && area0 > 0 && area1 > 0))
-			return IntersectionType::E;
+		if ((area0_sign == 0 && area1_sign > 0 && area2_sign > 0) || (area1_sign == 0 && area0_sign > 0 && area2_sign > 0) || (area2_sign == 0 && area0_sign > 0 && area1_sign > 0))
+			return IntersectionType::E; // in the relative interior of an Edge of T.
 
-		if ((area0 == 0 && area1 < 0 && area2 > 0) || (area1 == 0 && area0 < 0 && area2 > 0) || (area2 == 0 && area0 < 0 && area1 > 0))
-			return IntersectionType::E;
+		if ((area0_sign == 0 && area1_sign < 0 && area2_sign > 0) || (area1_sign == 0 && area0_sign < 0 && area2_sign > 0) || (area2_sign == 0 && area0_sign < 0 && area1_sign > 0))
+			return IntersectionType::E; //in the relative interior of an Edge of T.
 
-		if ((area0 > 0 && area1 > 0 && area2 > 0) || (area0 < 0 && area1 < 0 && area2 < 0))
-			return IntersectionType::F;
+		if ((area0_sign > 0 && area1_sign > 0 && area2_sign > 0) || (area0_sign < 0 && area1_sign < 0 && area2_sign < 0))
+			return IntersectionType::F; //in the relative interior of a Face of T.
 				
 		return IntersectionType::T0;
 	}
@@ -256,7 +196,9 @@ public:
 
 		Triangle triangleProjected = triangle->Triangle_Proj2D(m_XYZ);
 
-		return IntersectionTriangle2D(projPointXY, triangleProjected);
+		IntersectionType itypePoint =  IntersectionTriangle2D(projPointXY, triangleProjected);
+
+		return itypePoint;
 	}
 		
 	IntersectionType SegmentPlaneIntersection(int* _m_XYZ)
@@ -276,13 +218,16 @@ public:
 		num = D - (v_q * v_N);
 		denom = (v_qr * v_N);
 
-		if (denom != 0)
+		if (abs(denom) >= EPSILON) //denom != 0
 		{
 			t = num / denom;
 		}
 		else
 		{
-			return (num == 0) ? IntersectionType::p : IntersectionType::p0;
+			if (abs(num) < EPSILON) //num == 0
+				return IntersectionType::p;
+			else
+				return IntersectionType::p0;
 		}
 		 
 		v_P = v_q + t * v_qr;
@@ -339,37 +284,100 @@ public:
 	//lies entirely in the plane 
 	IntersectionType InPlane()
 	{
-		return IntersectionType::in_plane;
+		return IntersectionType::p;
 	}
 
 	IntersectionType IntersectionCalculate()
 	{		
-		int m_XYZ;
+		int max_XYZ = 0;
 		Vector v_P;
 		 
-		IntersectionType code = SegmentPlaneIntersection(&m_XYZ);
+		IntersectionType itypePlane = SegmentPlaneIntersection(&max_XYZ);
+		IntersectionType itypeTriangle = IntersectionType::T0;
 
-		if (code == IntersectionType::q)
+		if (itypePlane == IntersectionType::q)
 		{
 			Point Q = segment->getA();
-			return IntersectionTriangle3D(Q, m_XYZ);
+			itypeTriangle = IntersectionTriangle3D(Q, max_XYZ);
 		}
-		else if (code == IntersectionType::r)
+		else if (itypePlane == IntersectionType::r)
 		{
 			Point R = segment->getB();
-			return IntersectionTriangle3D(R, m_XYZ);
+			itypeTriangle = IntersectionTriangle3D(R, max_XYZ);
 		}
-		else if (code == IntersectionType::p)
+		else if (itypePlane == IntersectionType::p)
 		{
-			return InPlane();
+			itypeTriangle = InPlane();
 		}
-		else 
+		else if (itypePlane == IntersectionType::p0)
 		{
-			IntersectionType inType = SegmentTriangleCross();
-			return inType;
-		}			
+			itypeTriangle = itypePlane;
+		}
+		else if (itypePlane == IntersectionType::p1)
+		{
+			itypeTriangle = SegmentTriangleCross();
+		}
+
+		return itypeTriangle;					
 	}
-				
+	
+	// no use in this task, only to compare results
+	//MoellerЦTrumbore intersection algorithm 
+	static bool RayIntersectsTriangle(Segment* segment,
+		Triangle* inTriangle,
+		Vector& outIntersectionPoint)
+	{
+		Vector rayOrigin = segment->getA();
+		Vector rayVector = segment->getB();
+
+
+		Vector vertex0 = inTriangle->getA();
+		Vector vertex1 = inTriangle->getB();
+		Vector vertex2 = inTriangle->getC();
+
+		Vector edge1, edge2, h, s, q;
+
+		num a, f, u, v;
+		edge1 = vertex1 - vertex0;
+		edge2 = vertex2 - vertex0;
+
+		h = (rayVector ^ edge2);
+
+		a = (edge1 * h);
+
+		if (a > -EPSILON && a < EPSILON)
+			return false;    // This ray is parallel to this triangle.
+
+		f = 1.0 / a;
+		s = rayOrigin - vertex0;
+
+		u = f * (s * h);
+
+		if (u < 0.0 || u > 1.0)
+			return false;
+
+		q = (s ^ edge1);
+
+		v = f * (rayVector * q);
+
+		if (v < 0.0 || u + v > 1.0f)
+			return false;
+
+		// At this stage we can compute t to find out where the intersection point is on the line.
+		num t = f * (edge2 * q);
+
+		if (t > EPSILON) // ray intersection
+		{
+			outIntersectionPoint = rayOrigin + (t * rayVector);
+			return true;
+		}
+		else
+		{
+			// This means that there is a line intersection but not a ray intersection.
+			return false;
+		}
+	}
+
 	static bool is_ray_cross_triangle(Segment* _segment, Triangle* _triangle)
 	{
 		Vector intersectionPoint;
@@ -382,7 +390,8 @@ public:
 	}
 };
 
-//Test 1, IntersectionType::F
+//Test 1, IntersectionType::F 
+// конец отрезка попал в плоскоть треугольника
 #define vA 2, 0, 1
 #define vB 0, 1, 0
 #define vC 0, 0, 3 
@@ -391,12 +400,106 @@ public:
 #define toB 0.6, 0.6, 0.6 
 
 //Test 2, IntersectionType::E
+// конец отрезка попал в грань
 #define vA 1, 0, 0
 #define vB 0, 1, 0
 #define vC 1, 1, 1 
 
 #define fromA 0, 0, 0
 #define toB 0.5, 0.5, 0
+
+//Test 3, IntersectionType::V
+// конец отрезка попал в вершину
+#define vA 3, 0, 0
+#define vB 0, 1, 0
+#define vC 1, 1, 1 
+
+#define fromA 0, 0, 0
+#define toB 1., 1., 1.
+
+//Test 4, IntersectionType::F 
+// начало отрезка находитс€ в площади треугольника
+#define vA 2, 0, 1
+#define vB 0, 1, 0
+#define vC 0, 0, 3 
+
+#define fromA 0.6, 0.6, 0.6
+#define toB 1., 1., 1.
+
+
+//Test 4, IntersectionType::V 
+// начало отрезка находитс€ в вершине треугольника
+#define vA 2, 0, 1
+#define vB 0, 1, 0
+#define vC 0, 0, 3 
+
+#define fromA 2, 0., 1
+#define toB 5, 5, 6
+
+//Test 5, IntersectionType::V 
+// отрезок пересекает вершину треугольника
+#define vA 2, 1, 1
+#define vB 1, 4, -1
+#define vC 0.5, 0.5, 7 
+
+#define fromA 0, 0., 0
+#define toB 10, 10, 10
+
+//Test 6, IntersectionType::f 
+// отрезок пересекает плоскость треугольника
+#define vA 2, 1, 1
+#define vB 1, 4, -1
+#define vC 0.5, 0.5, 7 
+
+#define fromA 10, 10., 10
+#define toB 0, 0, 0
+
+//Test 7, IntersectionType::v 
+// отрезок пересекает вершину треугольника
+#define vA 2, 1, 1
+#define vB 1, 4, -1
+#define vC 0.5, 0.5, 7 
+
+#define fromA 0, -1, -1
+#define toB 4, 3, 3
+
+//Test 8, IntersectionType::e 
+// отрезок пересекает грань треугольника
+#define vA 0, 0, 0
+#define vB 3, 5, 1
+#define vC 0, 0, 7 
+
+#define fromA -2, -2, 0
+#define toB 2, 2, 4
+
+//Test 9, 
+// нет пересечени€
+#define vA 0, 0, 0
+#define vB 3, 5, 1
+#define vC 0, 0, 7 
+
+#define fromA 4, 6, 3
+#define toB 9, 12, 24
+
+//Test 10, 
+// параллельно плоскости
+#define vA 0, 0, 0
+#define vB 0, 3, 0
+#define vC 0, 0, 7 
+
+#define fromA 1, 0, 0
+#define toB 1, 4, 5
+
+
+//Test 11, 
+// лежит в плоскости
+#define vA 0, 0, 0
+#define vB 0, 3, 0
+#define vC 0, 0, 3 
+
+#define fromA 0, 0, 0
+#define toB 0, 4, 5
+
 
 
 int main()
@@ -416,20 +519,18 @@ int main()
 	{			
 		IntersectionType inResult = segmentTriangleIntersection->IntersectionCalculate();
 							
-		if (inResult == IntersectionType::F || inResult == IntersectionType::E || inResult == IntersectionType::V)
+		if (inResult == IntersectionType::F || inResult == IntersectionType::E || inResult == IntersectionType::V || 
+			inResult == IntersectionType::f || inResult == IntersectionType::e || inResult == IntersectionType::v)
 		{
 			cout << "Result: triangle intersection." << endl;
-			cout << "Intersection " << *segmentTriangleIntersection->getIntersectionPoint() << endl << endl;
+			cout << "Intersection " << *segmentTriangleIntersection->getIntersectionPoint() << endl ;
 		}
 		else
 		{
 			cout << "Result: no intersection " << endl;
 		}
 
-		cout << endl << "Description: " << txt_result[(int)inResult] << endl;
-		
-		SegmentTriangleIntersection::is_ray_cross_triangle(segment, triangle);
-
+		cout << endl << "Description: " << txt_result[(int)inResult] << endl;				
 	}	
 	delete segmentTriangleIntersection;
 
