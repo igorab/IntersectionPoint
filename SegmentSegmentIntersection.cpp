@@ -13,13 +13,15 @@ private:
 	Vector P;
 
 public:
+
+	Vector getP() { return P; }
+
 	
 	SegmentSegmentIntersection(Segment _segmentAB, Segment _segmentCD) : segmentAB(_segmentAB), segmentCD(_segmentCD) 
 	{ 
 		A = segmentAB.getA(); B = segmentAB.getB(); C = segmentCD.getA(); D = segmentCD.getB(); 
 	};
 	SegmentSegmentIntersection(Point _pointA, Point _pointB, Point _pointC, Point _pointD) :  segmentAB(Segment(_pointA, _pointB)), segmentCD(Segment(_pointC, _pointD)), A(_pointA), B(_pointB), C(_pointB), D(_pointD) {};
-
 
 	static num Area2(Point _A, Point _B, Point _C)
 	{
@@ -35,13 +37,51 @@ public:
 		return Area2(_A, _B, _C) >= 0;
 	}
 
+	static bool Between(Point _A, Point _B, Point _C)
+	{
+		bool ret = false;
+
+		if (_A.X != _B.X)
+		{
+			ret = (_A.X <= _C.X && _C.X <= _B.X || _A.X >= _C.X && _C.X >= _B.X);
+		}
+		else
+		{
+			ret = (_A.Y <= _C.Y && _C.Y <= _B.Y || _A.Y >= _C.Y && _C.Y >= _B.Y);
+		}
+
+		return ret;
+	}
 
 	char ParallelInt()
 	{
-		if (!Collinear(A, B, C))
-			return '0';
+		char ret = '0';
 
-		return '0';
+		if (!Collinear(A, B, C))
+			return ret;
+
+		if (Between(A, B, C))
+		{
+			P = Point(C);
+			return ret;
+		}
+		else if (Between(A, B, D))
+		{
+			P = Point(D);
+			return ret;
+		}
+		else if (Between(C, D, A))
+		{
+			P = Point(A);
+			return ret;
+		}
+		else if (Between(C, D, B))
+		{
+			P = Point(B);
+			return ret;
+		}
+
+		return ret;
 	}
 
 	char Calc()
@@ -81,6 +121,4 @@ public:
 
 		return code;
 	}
-
-
 };
