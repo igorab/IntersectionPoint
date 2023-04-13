@@ -680,7 +680,7 @@ public:
 #define fromA 0, 1, 0
 #define toB 5, 4, 0
 
-
+/*
 //Test 13,
 // лежит в плоскости, параллельно одной из граней
 #define vA 0, 0, 0
@@ -698,6 +698,25 @@ public:
 
 #define fromA 4, 5, 0
 #define toB 6, 7, 0
+
+//Test 14
+// лежит в плоскости
+#define vA 1, 0, 0
+#define vB 0, 1, 0
+#define vC 0, 0, 1 
+
+#define fromA 1, 0, 0
+#define toB 0, 1, 0
+
+//Test 15
+// лежит в плоскости, пересекает параллельно
+#define vA 1, 0, 0
+#define vB 0, 1, 0
+#define vC 0, 0, 1 
+
+#define fromA 0.5, 0, 0.5
+#define toB 0, 0.5, 0.5
+*/
 
 
 #pragma endregion
