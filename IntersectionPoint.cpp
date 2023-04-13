@@ -19,8 +19,13 @@ enum class IntersectionType {
 	V, // p coincides with a Vertex of T. 
 	E, // p is in the relative interior of an Edge of T.
 	F, // p is in the relative interior of a Face of T.
-	T0 // point lays outside
-	
+	T0, // point lays outside
+
+	// Check segment/segment
+	s_e,
+	s_v,
+	s_1,
+	s_0	
 };
 
 const char* txt_result[] = {"The segment lies wholly within the plane", 
@@ -35,7 +40,11 @@ const char* txt_result[] = {"The segment lies wholly within the plane",
 					 "Point coincides with a Vertex of triangle",
 					 "Point is in the relative interior of an Edge of triangle",
 					 "Point is in the relative interior of a Face of triangle",
-					 "Point lays outside triangle"
+					 "Point lays outside triangle",
+					 "Segment collinearly overlap",
+					 "Segment endpoint is on the other segment",
+				     "Segments intersect properly",
+					 "Segments do not intersect"
 					 };
 
 
@@ -64,13 +73,14 @@ private:
 	Vector P;
 public:
 
-	Vector getP() { return P; }
+	Point getP() { return P.getPoint(); }
 
 	SegmentSegmentIntersection(Segment _segmentAB, Segment _segmentCD) : segmentAB(_segmentAB), segmentCD(_segmentCD)
 	{
-		A = segmentAB.getA(); B = segmentAB.getB(); C = segmentCD.getA(); D = segmentCD.getB();
+		A = segmentAB.getA(); B = segmentAB.getB(); 
+		C = segmentCD.getA(); D = segmentCD.getB();
 	};
-	SegmentSegmentIntersection(Point _pointA, Point _pointB, Point _pointC, Point _pointD) : segmentAB(Segment(_pointA, _pointB)), segmentCD(Segment(_pointC, _pointD)), A(_pointA), B(_pointB), C(_pointB), D(_pointD) {};
+	SegmentSegmentIntersection(Point _pointA, Point _pointB, Point _pointC, Point _pointD) : segmentAB(Segment(_pointA, _pointB)), segmentCD(Segment(_pointC, _pointD)), A(_pointA), B(_pointB), C(_pointC), D(_pointD) {};
 
 	static num Area2(Point _A, Point _B, Point _C)
 	{
@@ -155,6 +165,7 @@ public:
 		s = num / denom;
 
 		num = -(A.X * (C.Y - B.Y) + B.X * (A.Y - C.Y) + C.X * (B.Y - A.Y));
+
 		if (num == 0.0 || num == denom)
 			code = 'v';
 
@@ -408,17 +419,39 @@ public:
 		Point B = triangle->getB();
 		Point C = triangle->getC();
 
+		char itype;
+
 		Segment side1(A, B);
 		SegmentSegmentIntersection ssI_1(*segment, side1);
-		ssI_1.Calc();
-
+		itype = ssI_1.Calc();
+		if (itype != '0')
+		{
+			iPoint = ssI_1.getP();
+			return IntersectionType::p;
+		}
+		
 		Segment side2(B, C);
 		SegmentSegmentIntersection ssI_2(*segment, side2);
-		ssI_2.Calc();
+		itype = ssI_2.Calc();
+		if (itype != '0')
+		{
+			iPoint = ssI_2.getP();
+			return IntersectionType::p;
+		}
 
 		Segment side3(C, A);
 		SegmentSegmentIntersection ssI_3(*segment, side3);
-		ssI_3.Calc();
+		itype = ssI_3.Calc();
+		if (itype != '0')
+		{
+			iPoint = ssI_3.getP();
+			return IntersectionType::p;
+		}
+
+		if (itype == '0')
+		{
+			return IntersectionType::f0;
+		}
 
 		return IntersectionType::p;
 	}
@@ -526,8 +559,7 @@ public:
 	}
 };
 
-
-
+#pragma region Tests
 
 //Test 1, IntersectionType::F 
 // конец отрезка попал в плоскоть треугольника
@@ -639,7 +671,36 @@ public:
 #define fromA 0, 0, 0
 #define toB 0, 4, 5
 
+//Test 12,
+// лежит в плоскости
+#define vA 0, 0, 0
+#define vB 0, 3, 0
+#define vC 3, 0, 0 
 
+#define fromA 0, 1, 0
+#define toB 5, 4, 0
+
+
+//Test 13,
+// лежит в плоскости, параллельно одной из граней
+#define vA 0, 0, 0
+#define vB 0, 3, 0
+#define vC 3, 0, 0 
+
+#define fromA 0, -1, 0
+#define toB 0, 4, 0
+
+//Test 14
+// лежит в плоскости, не пересекает ни одну из граней
+#define vA 0, 0, 0
+#define vB 0, 3, 0
+#define vC 3, 0, 0 
+
+#define fromA 4, 5, 0
+#define toB 6, 7, 0
+
+
+#pragma endregion
 
 int main()
 {		
@@ -659,7 +720,8 @@ int main()
 		IntersectionType inResult = segmentTriangleIntersection->IntersectionCalculate();
 							
 		if (inResult == IntersectionType::F || inResult == IntersectionType::E || inResult == IntersectionType::V || 
-			inResult == IntersectionType::f || inResult == IntersectionType::e || inResult == IntersectionType::v)
+			inResult == IntersectionType::f || inResult == IntersectionType::e || inResult == IntersectionType::v ||
+			inResult == IntersectionType::p)
 		{
 			cout << "Result: triangle intersection." << endl;
 			cout << "Intersection " << *segmentTriangleIntersection->getIntersectionPoint() << endl ;
