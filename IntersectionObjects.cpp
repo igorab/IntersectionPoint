@@ -6,7 +6,7 @@
 
 using namespace std;
 typedef float num;
-const int DIM = 3;
+const int dim3D = 3;
 const float EPSILON = 0.0001;
 
 struct IShape
@@ -30,7 +30,7 @@ struct Point : IShape
 
 	num* getTPoint()
 	{
-		static num Tp[DIM] = { X, Y, Z };
+		static num Tp[dim3D] = { X, Y, Z };
 		return Tp;
 	}
 

@@ -141,7 +141,7 @@
   <ItemGroup>
     <ClCompile Include="IntersectionObjects.cpp" />
     <ClCompile Include="IntersectionPoint.cpp" />
-    <ClCompile Include="SegmentSegmentIntersection.cpp" />
+    <ClCompile Include="IntersectionTest.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
