@@ -1,6 +1,5 @@
-// Ќаписать код на —++дл€ определени€ точки пересечени€ отрезка и
-// треугольника в 3D пространстве.ќтрезок задан координатами концов,
-// треугольник задан координатами всех трех углов.
+//Write C++ code to determine the intersection point of a segmentand a triangle in 3D space. 
+// A segment is given by the coordinates of the ends, a triangle is given by the coordinates of all three corners.
 
 #include <iostream>
 
